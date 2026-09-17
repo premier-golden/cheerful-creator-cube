@@ -9,9 +9,14 @@
 export const CDN = "https://www.nutritiongeeks.co/cdn/shop/files";
 
 export const BIOTIN = `${CDN}/biotin-growth-nutrition-geeks-image-position_c7b0fb03.png?v=1778516594&width=200`;
+
 export const MAGNESIUM = `${CDN}/magnesium-glycinate-3-in-1-nutrition-geeks-image-position_dbd9aad3.png?v=1753719782&width=200`;
 
-export type Gift = { image: string; label: string; value: string };
+export type Gift = {
+  image: string;
+  label: string;
+  value: string;
+};
 
 export type Bundle = {
   id: string;
@@ -19,21 +24,28 @@ export type Bundle = {
   title: string;
   perPack: string;
   supply: string;
+
   /** Selling price, formatted (e.g. "£16.99") */
   price: string;
+
   /** Compare-at price, formatted */
   compare: string;
+
   badge?: string;
   gifts: Gift[];
+
   /** Product name shown in the checkout line item */
   productName?: string;
+
   /** Units in the pack (checkout quantity) */
   quantity?: number;
+
   /** Variant/option label shown in the checkout line item */
   variant?: string;
 };
 
 export const PRODUCT_NAME = "Collagen Glow Up Powder";
+
 export const CURRENCY_SYMBOL = "£";
 
 export const BUNDLES: Bundle[] = [
@@ -50,32 +62,48 @@ export const BUNDLES: Bundle[] = [
     quantity: 1,
     variant: "1 Pack / 1 month supply",
   },
+
   {
     id: "3",
     image: `${CDN}/3_pack_1.png?v=1775710196&width=300`,
     title: "3 Packs",
-    perPack: "£8.33 per pack",
+    perPack: "£15.00 per pack",
     supply: "3 months supply",
-    price: "£24.99",
+    price: "£44.99",
     compare: "£50.97",
     badge: "Free Gift 🎁",
-    gifts: [{ image: BIOTIN, label: "+ FREE Biotin Growth+ (£6.99)", value: "£6.99" }],
+    gifts: [
+      {
+        image: BIOTIN,
+        label: "+ FREE Biotin Growth+ (£6.99)",
+        value: "£6.99",
+      },
+    ],
     productName: PRODUCT_NAME,
     quantity: 3,
     variant: "3 Packs / 3 months supply",
   },
+
   {
     id: "6",
     image: `${CDN}/6_pack_1.png?v=1775710196&width=300`,
     title: "6 Packs",
-    perPack: "£7.17 per pack",
+    perPack: "£14.00 per pack",
     supply: "6 months supply",
-    price: "£42.99",
+    price: "£83.99",
     compare: "£101.94",
     badge: "Free Gift 🎁",
     gifts: [
-      { image: BIOTIN, label: "+ FREE Biotin Growth+ (£6.99)", value: "£6.99" },
-      { image: MAGNESIUM, label: "+ FREE Magnesium (£9.99)", value: "£9.99" },
+      {
+        image: BIOTIN,
+        label: "+ FREE Biotin Growth+ (£6.99)",
+        value: "£6.99",
+      },
+      {
+        image: MAGNESIUM,
+        label: "+ FREE Magnesium (£9.99)",
+        value: "£9.99",
+      },
     ],
     productName: PRODUCT_NAME,
     quantity: 6,
@@ -85,18 +113,24 @@ export const BUNDLES: Bundle[] = [
 
 export const DEFAULT_BUNDLE_ID = BUNDLES[0]!.id;
 
-/** Product names sent to Stripe as the payment description, keyed by pack id. */
+/**
+ * Product names sent to Stripe as the payment description,
+ * keyed by pack id.
+ */
 export const STRIPE_PRODUCT_NAMES: Record<string, string> = {
   "1": "AI Essentials: Your First Steps with Artificial Intelligence",
   "3": "AI Productivity Mastery",
   "6": "AI Business Accelerator",
 };
 
-/** Shipping methods offered once a valid UK postcode is entered. */
+/**
+ * Shipping methods offered once a valid UK postcode is entered.
+ */
 export type ShippingMethod = {
   id: string;
   label: string;
   description: string;
+
   /** Price in GBP */
   amount: number;
 };
@@ -116,25 +150,30 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
   },
 ];
 
-/** Basic UK postcode validation (e.g. "SW1A 1AA", "M1 1AE"). */
+/**
+ * Basic UK postcode validation
+ * (e.g. "SW1A 1AA", "M1 1AE").
+ */
 export function isValidUkPostcode(value: string): boolean {
-  return /^([Gg][Ii][Rr] ?0[Aa]{2}|[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2})$/.test(
-    value.trim(),
-  );
+  return /^([Gg][Ii][Rr] ?0[Aa]{2}|[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2})$/.test(value.trim());
 }
 
 export function getBundle(id?: string | null): Bundle {
   return BUNDLES.find((b) => b.id === id) ?? BUNDLES[0]!;
 }
 
-/** Shipping method by id (null when none/unknown is selected). */
+/**
+ * Shipping method by id
+ * (null when none/unknown is selected).
+ */
 export function getShippingMethod(id?: string | null): ShippingMethod | null {
   return SHIPPING_METHODS.find((m) => m.id === id) ?? null;
 }
 
-/** "£24.99" -> 24.99 */
+/** "£44.99" -> 44.99 */
 export function parseAmount(formatted: string): number {
   const n = Number(formatted.replace(/[^0-9.]/g, ""));
+
   return Number.isFinite(n) ? n : 0;
 }
 
