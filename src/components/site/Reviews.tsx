@@ -12,7 +12,6 @@ import {
   REVIEWS,
   REVIEW_AVERAGE,
   REVIEW_TOTAL,
-  productForReview,
   type Review,
 } from "@/lib/reviews-data";
 
@@ -35,10 +34,9 @@ function RatingStars({ value, className = "size-4" }: { value: number; className
 }
 
 function ReviewRow({ r }: { r: Review }) {
-  const product = productForReview(r);
   return (
-    <article className="border-t border-border py-7">
-      <RatingStars value={r.rating} className="size-5" />
+    <article className="border-t border-border py-6 md:py-7">
+      <RatingStars value={r.rating} className="size-[18px]" />
       <div className="mt-3 flex items-center gap-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-soft text-sm font-bold">
           {r.name.charAt(0)}
@@ -62,23 +60,9 @@ function ReviewRow({ r }: { r: Review }) {
           </p>
         </div>
       </div>
-      <h3 className="mt-4 text-lg font-extrabold">{r.title}</h3>
-      <p className="mt-1 text-[15px] leading-relaxed text-foreground/80">{r.body}</p>
+      <h3 className="mt-4 text-xl font-bold">{r.title}</h3>
+      <p className="mt-2 text-base leading-[1.65] text-foreground/80">{r.body}</p>
       {r.note && <p className="mt-2 text-sm text-muted-foreground">{r.note}</p>}
-      <div className="mt-4 flex items-center gap-3 rounded-lg bg-secondary/70 p-3">
-        <img
-          src={product.image}
-          alt={product.name}
-          loading="lazy"
-          className="size-9 rounded object-contain"
-        />
-        <div className="text-sm">
-          <p className="text-muted-foreground">Review for</p>
-          <a href="#top" className="font-medium underline">
-            {product.name}
-          </a>
-        </div>
-      </div>
     </article>
   );
 }
@@ -122,14 +106,14 @@ export function Reviews() {
   }, [pages, current]);
 
   const iconBtn =
-    "grid size-10 place-items-center rounded-md border border-ink text-ink transition hover:bg-ink hover:text-primary-foreground";
+    "grid size-[34px] place-items-center rounded border border-ink text-ink transition hover:bg-ink hover:text-primary-foreground";
 
   return (
-    <section className="border-t border-border py-14">
-      <div className="mx-auto max-w-5xl px-4">
+    <section className="border-t border-border py-11 md:py-14">
+      <div className="mx-auto max-w-5xl px-[15px] md:px-4">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="text-2xl font-extrabold md:text-3xl">Customer Reviews</h2>
+            <h2 className="text-xl font-bold text-ink md:text-3xl">Customer Reviews</h2>
             <div className="mt-3 flex items-center gap-3">
               <Star strokeWidth={1.75} className="size-6 fill-amber-400 text-amber-400" />
               <span className="text-3xl font-extrabold">{REVIEW_AVERAGE}</span>
@@ -138,7 +122,7 @@ export function Reviews() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button className="rounded-md bg-ink px-6 py-2.5 text-sm font-bold text-primary-foreground">
+            <button className="h-[34px] w-[197px] rounded bg-ink px-6 text-base font-normal text-primary-foreground">
               Write a review
             </button>
             <button
@@ -241,7 +225,7 @@ export function Reviews() {
           </div>
         )}
 
-        <div className="mt-8">
+        <div className="mt-7">
           {visible.length === 0 ? (
             <p className="border-t border-border py-10 text-center text-sm text-muted-foreground">
               No reviews match your filters.
@@ -256,7 +240,7 @@ export function Reviews() {
             aria-label="Previous page"
             disabled={current === 1}
             onClick={() => setPage(current - 1)}
-            className="grid size-9 place-items-center rounded-full text-muted-foreground disabled:opacity-40"
+             className="grid size-[30px] place-items-center rounded-full text-muted-foreground disabled:opacity-40"
           >
             <ChevronLeft strokeWidth={1.75} className="size-4" />
           </button>
@@ -269,7 +253,7 @@ export function Reviews() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`grid size-9 place-items-center rounded-full text-sm font-medium transition ${
+                 className={`grid size-[30px] place-items-center rounded-full text-sm font-medium transition ${
                   p === current ? "bg-ink text-primary-foreground" : "hover:bg-secondary"
                 }`}
               >
@@ -281,7 +265,7 @@ export function Reviews() {
             aria-label="Next page"
             disabled={current === pages}
             onClick={() => setPage(current + 1)}
-            className="grid size-9 place-items-center rounded-full text-muted-foreground disabled:opacity-40"
+             className="grid size-[30px] place-items-center rounded-full text-muted-foreground disabled:opacity-40"
           >
             <ChevronRight strokeWidth={1.75} className="size-4" />
           </button>
