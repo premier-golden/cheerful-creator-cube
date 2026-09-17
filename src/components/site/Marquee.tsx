@@ -1,6 +1,6 @@
 const LOGOS = [
   { alt: "Glamour", src: "https://www.nutritiongeeks.co/cdn/shop/files/Glamour_be1f4589-c612-4ed9-8336-2364547a3952.png?v=1724140568&width=1500" },
-  { alt: "The Independent", src: "https://upload.wikimedia.org/wikipedia/commons/4/40/The_Independent_logo.svg" },
+  { alt: "The Independent", src: "https://upload.wikimedia.org/wikipedia/en/thumb/1/10/The_Independent_screenshot%2C_25_July_2021.png/330px-The_Independent_screenshot%2C_25_July_2021.png" },
   { alt: "Metro", src: "https://www.nutritiongeeks.co/cdn/shop/files/Metro.png?v=1724140569&width=1500" },
   { alt: "Men's Health", src: "https://www.nutritiongeeks.co/cdn/shop/files/Men_s_health.png?v=1724140568&width=1500" },
   { alt: "Women's Health", src: "https://www.nutritiongeeks.co/cdn/shop/files/Women_s_health.png?v=1724140569&width=1500" },

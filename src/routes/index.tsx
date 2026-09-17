@@ -48,7 +48,6 @@ const GALLERY = [
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-5.png?v=1784565383&width=900`,
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-7.png?v=1784565397&width=900`,
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-8.png?v=1784565397&width=900`,
-  `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-9.png?v=1777739465&width=900`,
 ];
 
 // Packs live in @/lib/offer so the Checkout can read the same data.
