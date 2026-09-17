@@ -87,7 +87,7 @@ function PayForm({
         type="button"
         onClick={handlePay}
         disabled={submitting || !stripe || !elements}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-co-accent px-6 py-4 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef7a1a] px-6 py-4 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {submitting && <Loader2 className="size-4 animate-spin" strokeWidth={2} aria-hidden="true" />}
         {submitting ? "Processing…" : "Pay now"}
