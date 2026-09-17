@@ -3,6 +3,12 @@ import { z } from "zod";
 
 import { getBundle, getShippingMethod, parseAmount, STRIPE_PRODUCT_NAMES } from "./offer";
 
+const STRIPE_API = "https://api.stripe.com/v1";
+const CURRENCY = "gbp";
+
+/**
+ * Creates the PaymentIntent.
+ */
 const inputSchema = z.object({
   pack: z.string().min(1),
   email: z.string().email().optional(),
@@ -18,10 +24,9 @@ const inputSchema = z.object({
   phone: z.string().optional(),
 });
 
-const STRIPE_API = "https://api.stripe.com/v1";
-const CURRENCY = "gbp";
-
-export const createStripePaymentIntent = createServerFn({ method: "POST" })
+export const createStripePaymentIntent = createServerFn({
+  method: "POST",
+})
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
     const secretKey = process.env["STRIPE_SECRET_KEY"];
@@ -51,25 +56,33 @@ export const createStripePaymentIntent = createServerFn({ method: "POST" })
       form.set("receipt_email", data.email);
     }
 
-    // Order identification
+    // Product / order identification
     form.set("metadata[pack]", bundle.id);
     form.set("metadata[variant]", bundle.variant ?? bundle.title);
 
-    // Shipping selection
+    // Shipping method
     form.set("metadata[shipping]", shipping?.id ?? "none");
+
     form.set("metadata[shipping_amount]", String(shipping?.amount ?? 0));
 
     // Customer
     form.set("metadata[first_name]", data.firstName ?? "");
+
     form.set("metadata[last_name]", data.lastName ?? "");
+
     form.set("metadata[email]", data.email ?? "");
+
     form.set("metadata[phone]", data.phone ?? "");
 
     // Delivery address
     form.set("metadata[country]", data.country ?? "United Kingdom");
+
     form.set("metadata[postal_code]", data.postalCode ?? "");
+
     form.set("metadata[street]", data.street ?? "");
+
     form.set("metadata[apartment]", data.apartment ?? "");
+
     form.set("metadata[city]", data.city ?? "");
 
     try {
@@ -85,7 +98,9 @@ export const createStripePaymentIntent = createServerFn({ method: "POST" })
 
       const intent = (await res.json()) as {
         client_secret?: string;
-        error?: { message?: string };
+        error?: {
+          message?: string;
+        };
       };
 
       if (!res.ok || !intent.client_secret) {
@@ -109,6 +124,121 @@ export const createStripePaymentIntent = createServerFn({ method: "POST" })
       return {
         ok: false as const,
         error: "Payment service unavailable. Please try again.",
+      };
+    }
+  });
+
+/**
+ * Updates the existing PaymentIntent with the buyer's latest
+ * information immediately before Stripe confirms the payment.
+ *
+ * This means the webhook can recover the delivery information
+ * even if the buyer closes the checkout after payment.
+ */
+const updateIntentSchema = z.object({
+  clientSecret: z.string().min(1),
+
+  email: z.string().email(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  country: z.string().min(1),
+  postalCode: z.string().min(1),
+  street: z.string().min(1),
+
+  apartment: z.string().optional().default(""),
+  city: z.string().min(1),
+  phone: z.string().optional().default(""),
+});
+
+export const updateStripePaymentIntent = createServerFn({
+  method: "POST",
+})
+  .inputValidator((data: unknown) => updateIntentSchema.parse(data))
+  .handler(async ({ data }) => {
+    const secretKey = process.env["STRIPE_SECRET_KEY"];
+
+    if (!secretKey) {
+      return {
+        ok: false as const,
+        error: "Stripe is not configured.",
+      };
+    }
+
+    /*
+     * A client secret looks like:
+     *
+     * pi_xxxxxxxxx_secret_xxxxxxxxx
+     *
+     * We only need the PaymentIntent ID on the server.
+     */
+    const paymentIntentId = data.clientSecret.split("_secret_")[0];
+
+    if (!paymentIntentId || !paymentIntentId.startsWith("pi_")) {
+      return {
+        ok: false as const,
+        error: "Invalid PaymentIntent.",
+      };
+    }
+
+    const form = new URLSearchParams();
+
+    form.set("receipt_email", data.email);
+
+    // Customer
+    form.set("metadata[first_name]", data.firstName);
+
+    form.set("metadata[last_name]", data.lastName);
+
+    form.set("metadata[email]", data.email);
+
+    form.set("metadata[phone]", data.phone);
+
+    // Delivery address
+    form.set("metadata[country]", data.country);
+
+    form.set("metadata[postal_code]", data.postalCode);
+
+    form.set("metadata[street]", data.street);
+
+    form.set("metadata[apartment]", data.apartment);
+
+    form.set("metadata[city]", data.city);
+
+    try {
+      const res = await fetch(`${STRIPE_API}/payment_intents/${paymentIntentId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: form.toString(),
+      });
+
+      const intent = (await res.json()) as {
+        id?: string;
+        error?: {
+          message?: string;
+        };
+      };
+
+      if (!res.ok) {
+        console.error("Stripe PaymentIntent update failed", res.status, intent);
+
+        return {
+          ok: false as const,
+          error: intent.error?.message ?? "Could not prepare the order.",
+        };
+      }
+
+      return {
+        ok: true as const,
+      };
+    } catch (error) {
+      console.error(error);
+
+      return {
+        ok: false as const,
+        error: "Could not prepare the order.",
       };
     }
   });
