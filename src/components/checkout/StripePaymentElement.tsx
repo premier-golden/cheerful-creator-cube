@@ -176,7 +176,7 @@ export function StripePaymentElement({
             appearance: { theme: "stripe" },
           }}
         >
-          <PayForm postcode={postcode} email={email} onPaid={onPaid} />
+          <PayForm postcode={postcode ?? null} email={email ?? null} onPaid={onPaid} />
         </Elements>
       )}
     </div>
