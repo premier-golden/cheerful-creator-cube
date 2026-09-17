@@ -390,7 +390,7 @@ function ProductPage() {
                           {b.gifts.map((g) => (
                             <div
                               key={g.label}
-                                className="flex items-center gap-3 bg-muted-foreground/50 px-3 py-2 text-sm text-ink"
+                                className="flex items-center gap-3 bg-gift-strip px-3 py-2 text-sm text-ink"
                             >
                               <img src={g.image} alt="" className="size-10 object-contain" />
                               <span className="relative flex-1 pl-3 font-semibold before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:bg-ink">{g.label}</span>
@@ -569,7 +569,6 @@ function ProductPage() {
                 ))}
               </AccordionItem>
             ))}
-          </div>
             <AccordionItem title="Can't find the answer you're looking for?" variant="card">
               <a href="#" className="inline-block underline underline-offset-4">Click here to ask us!</a>
             </AccordionItem>
@@ -655,7 +654,7 @@ function ProductPage() {
               </div>
               <p className="mt-8 text-[17px] font-semibold">Payment Methods</p>
               <div className="mt-3 flex max-w-sm flex-wrap gap-2" aria-label="Accepted payment methods">
-                {["amex", "applepay", "diners", "discover", "googlepay", "maestro", "mastercard", "paypal", "shopify", "unionpay", "visa"].map((p) => (
+                {["amex", "diners", "discover", "maestro", "mastercard", "paypal", "unionpay", "visa"].map((p) => (
                   <img key={p} src={`https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons/flat/${p}.svg`} alt={p} className="h-6 w-[38px] rounded-sm bg-background object-contain" />
                 ))}
               </div>
