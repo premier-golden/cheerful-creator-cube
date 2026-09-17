@@ -29,10 +29,12 @@ export type Database = {
           phone: string | null
           postal_code: string
           shipping: string | null
+          shipping_amount: number | null
           shopify_order_id: string | null
           status: string
           street: string
           stripe_payment_intent_id: string | null
+          updated_at: string
         }
         Insert: {
           apartment?: string | null
@@ -48,10 +50,12 @@ export type Database = {
           phone?: string | null
           postal_code: string
           shipping?: string | null
+          shipping_amount?: number | null
           shopify_order_id?: string | null
           status?: string
           street: string
           stripe_payment_intent_id?: string | null
+          updated_at?: string
         }
         Update: {
           apartment?: string | null
@@ -67,10 +71,12 @@ export type Database = {
           phone?: string | null
           postal_code?: string
           shipping?: string | null
+          shipping_amount?: number | null
           shopify_order_id?: string | null
           status?: string
           street?: string
           stripe_payment_intent_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -83,6 +89,7 @@ export type Database = {
           shopify_order_name: string | null
           status: string
           stripe_event_id: string | null
+          updated_at: string
         }
         Insert: {
           completed_at?: string | null
@@ -92,6 +99,7 @@ export type Database = {
           shopify_order_name?: string | null
           status?: string
           stripe_event_id?: string | null
+          updated_at?: string
         }
         Update: {
           completed_at?: string | null
@@ -101,6 +109,7 @@ export type Database = {
           shopify_order_name?: string | null
           status?: string
           stripe_event_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
