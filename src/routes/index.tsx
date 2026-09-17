@@ -255,7 +255,7 @@ function ProductPage() {
       <main>
         {/* Product */}
         <section className="mx-auto grid max-w-7xl gap-8 px-[15px] pb-8 pt-0 md:px-4 md:py-14 lg:grid-cols-2 lg:gap-14">
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
             <div className="relative overflow-hidden rounded-[10px] bg-brand-soft">
               <img
                 src={GALLERY[active]}
@@ -266,7 +266,7 @@ function ProductPage() {
                 <ZoomIn className="size-[18px]" />
               </button>
             </div>
-            <div className="-mx-[15px] mt-3 flex gap-[9px] overflow-x-auto px-[15px] pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0">
+            <div className="-mx-[15px] mt-3 flex max-w-[calc(100%+30px)] gap-[9px] overflow-x-auto px-[15px] pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:max-w-full md:px-0">
               {GALLERY.map((src, i) => (
                 <button
                   key={src}
