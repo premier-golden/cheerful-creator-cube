@@ -9,6 +9,7 @@ Match the previously inspected checkout reference at approximately 390px while p
 - Keep desktop functional with responsive classes and retain the current two-column desktop checkout.
 - Use the existing bundle, shipping, savings, and total data; add no new pricing or discount behavior.
 - Keep the real Stripe Payment Element and every existing payment handler. Only adjust its supported appearance options and surrounding presentation.
+- Non-negotiable payment methods: Stripe card payment only. Never add PayPal buttons, logos, rows, placeholders, simulated UI, Express Checkout, or any method copied from the reference. Never replace Stripe fields with custom or fake card inputs.
 - Hide the optional “Save this information” row on mobile without changing payment data handling.
 
 ## Protected

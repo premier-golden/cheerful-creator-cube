@@ -8,3 +8,4 @@
 
 - [ ] Reconstruct the mobile checkout presentation to match the reference at 390px
 - [ ] Verify checkout visuals and protected payment/order behavior after reconstruction
+- [ ] Enforce Stripe card-only checkout presentation with no PayPal or Express Checkout UI
