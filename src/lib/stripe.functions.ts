@@ -217,6 +217,10 @@ export const updateStripePaymentIntent =
         };
       }
 
+      /*
+       * Extract the PaymentIntent ID from
+       * Stripe's client secret.
+       */
       const paymentIntentId =
         data.clientSecret.split(
           "_secret_",
@@ -238,6 +242,10 @@ export const updateStripePaymentIntent =
        * STEP 1
        * Store private delivery data in Supabase.
        * ------------------------------------------
+       *
+       * paymentIntentId is also stored so the
+       * checkout order is permanently linked to
+       * this specific PaymentIntent.
        */
       let checkoutOrderId: string;
 
@@ -260,6 +268,8 @@ export const updateStripePaymentIntent =
               },
 
               body: JSON.stringify({
+                paymentIntentId,
+
                 pack: data.pack,
 
                 shipping:
@@ -344,6 +354,10 @@ export const updateStripePaymentIntent =
        * STEP 2
        * Stripe receives ONLY the internal order ID.
        * ------------------------------------------
+       *
+       * No delivery address, shipping method,
+       * shipping amount, phone or customer name
+       * is added to Stripe metadata.
        */
       const form =
         new URLSearchParams();
