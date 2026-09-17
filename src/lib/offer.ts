@@ -140,13 +140,13 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     id: "standard",
     label: "Standard Delivery",
     description: "",
-    amount: 6,
+    amount: 6.91,
   },
   {
     id: "express",
     label: "Express Delivery",
     description: "",
-    amount: 12,
+    amount: 10.26,
   },
 ];
 
