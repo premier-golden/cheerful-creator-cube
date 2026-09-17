@@ -71,6 +71,10 @@ function PayForm({
       <PaymentElement
         options={{
           layout: "tabs",
+          // Hide Stripe Link entirely: no wallet button and no inline
+          // "Save my information" signup below the card fields.
+          wallets: { link: "never" },
+        } as never}
           defaultValues: {
             billingDetails: {
               ...(buyerEmail ? { email: buyerEmail } : {}),
