@@ -14,7 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      checkout_orders: {
+        Row: {
+          apartment: string | null
+          city: string
+          country: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          pack: string
+          paid_at: string | null
+          phone: string | null
+          postal_code: string
+          shipping: string | null
+          shopify_order_id: string | null
+          status: string
+          street: string
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          apartment?: string | null
+          city: string
+          country?: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          pack: string
+          paid_at?: string | null
+          phone?: string | null
+          postal_code: string
+          shipping?: string | null
+          shopify_order_id?: string | null
+          status?: string
+          street: string
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          apartment?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          pack?: string
+          paid_at?: string | null
+          phone?: string | null
+          postal_code?: string
+          shipping?: string | null
+          shopify_order_id?: string | null
+          status?: string
+          street?: string
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: []
+      }
+      processed_stripe_payments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          payment_intent_id: string
+          shopify_order_id: string | null
+          shopify_order_name: string | null
+          status: string
+          stripe_event_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          payment_intent_id: string
+          shopify_order_id?: string | null
+          shopify_order_name?: string | null
+          status?: string
+          stripe_event_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          payment_intent_id?: string
+          shopify_order_id?: string | null
+          shopify_order_name?: string | null
+          status?: string
+          stripe_event_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
