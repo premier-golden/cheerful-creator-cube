@@ -38,7 +38,8 @@ export const createStripePaymentIntent = createServerFn({ method: "POST" })
     const form = new URLSearchParams();
     form.set("amount", String(amount));
     form.set("currency", CURRENCY);
-    form.set("automatic_payment_methods[enabled]", "true");
+    // Card-only intents keep the Stripe Link signup block out of the Payment Element.
+    form.set("payment_method_types[0]", "card");
     form.set(
       "description",
       `${bundle.productName ?? PRODUCT_NAME} — ${bundle.variant ?? bundle.title}`,
