@@ -25,6 +25,7 @@ import {
   createStripePaymentIntent,
   updateStripePaymentIntent,
 } from "@/lib/stripe.functions";
+import { Button } from "@/components/ui/button";
 
 /** This checkout sells to the United Kingdom only. */
 const LOCALE = "en-GB" as const;
@@ -360,7 +361,7 @@ function PayForm({
         </p>
       )}
 
-      <button
+      <Button
         type="button"
         onClick={handlePay}
         disabled={
@@ -381,7 +382,7 @@ function PayForm({
         {submitting
           ? "Processing…"
           : "Pay now"}
-      </button>
+      </Button>
     </div>
   );
 }

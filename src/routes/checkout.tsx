@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ChevronDown,
   Lock,
-  Truck,
   ShieldCheck,
   ShoppingBag,
   Loader2,
