@@ -344,6 +344,9 @@ function PayForm({
            */
           defaultValues: {
             billingDetails: {
+              address: {
+                country: "GB",
+              },
               ...(buyerEmail
                 ? {
                     email:
