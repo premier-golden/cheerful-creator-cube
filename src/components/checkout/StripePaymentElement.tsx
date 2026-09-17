@@ -26,32 +26,32 @@ function PayForm({
   email,
   onPaid,
 }: {
-  postcode?: string | null;
-  email?: string | null;
-  onPaid?: () => void;
+  postcode: string | null;
+  email: string | null;
+  onPaid?: (() => void) | undefined;
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const buyerEmail = email?.trim() ? email.trim() : null;
 
   async function handlePay() {
     if (!stripe || !elements) return;
     setSubmitting(true);
     setError(null);
-    const { error: payError, paymentIntent } = await stripe.confirmPayment({
+    const result = await stripe.confirmPayment({
       elements,
       redirect: "if_required",
-      confirmParams: {
-        receipt_email: email?.trim() || undefined,
-      },
-    });
-    if (payError) {
-      setError(payError.message ?? "Payment failed. Please try another card.");
+      confirmParams: buyerEmail ? { receipt_email: buyerEmail } : {},
+    } as Parameters<typeof stripe.confirmPayment>[0]);
+    if (result.error) {
+      setError(result.error.message ?? "Payment failed. Please try another card.");
       setSubmitting(false);
       return;
     }
-    if (paymentIntent && (paymentIntent.status === "succeeded" || paymentIntent.status === "processing")) {
+    const intent = (result as { paymentIntent?: { status?: string } }).paymentIntent;
+    if (intent && (intent.status === "succeeded" || intent.status === "processing")) {
       onPaid?.();
       return;
     }
@@ -65,7 +65,7 @@ function PayForm({
           layout: "tabs",
           defaultValues: {
             billingDetails: {
-              email: email?.trim() || undefined,
+              ...(buyerEmail ? { email: buyerEmail } : {}),
               address: {
                 country: BILLING_COUNTRY,
                 ...(postcode ? { postal_code: postcode } : {}),
