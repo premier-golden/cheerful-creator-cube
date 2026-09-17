@@ -15,7 +15,7 @@ import {
 
 import logoAsset from "@/assets/nutrition-geeks-logo.png.asset.json";
 import { CheckoutSummary } from "@/components/checkout/CheckoutSummary";
-import { CooudPaymentElement } from "@/components/checkout/CooudPaymentElement";
+import { StripePaymentElement } from "@/components/checkout/StripePaymentElement";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import {
   Field,
@@ -68,8 +68,6 @@ function CheckoutPage() {
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [email, setEmail] = useState("");
-  // Cooud requires customer_email on the confirm call, so the payment element
-  // is only mounted once a valid email is present.
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
   const [shippingId, setShippingId] = useState<string | null>(null);
   const postcodeValid = isValidUkPostcode(postcode);
@@ -104,7 +102,7 @@ function CheckoutPage() {
     if (emailValid) tiktokIdentify(email);
   }, [email, emailValid]);
 
-  /** Fired by the Cooud payment component once the payment is approved. */
+  /** Fired by the Stripe payment element once the payment is approved. */
   const handlePaid = useCallback(async () => {
     const form = formRef.current;
     if (!form) return;
@@ -303,7 +301,7 @@ function CheckoutPage() {
           </section>
 
 
-          {/* Payment — Cooud Elements (API v2 custom checkout, inline) */}
+          {/* Payment — Stripe Payment Element (inline, no redirect) */}
           <section className="mt-8">
             <SectionTitle>Payment</SectionTitle>
             <p className="mb-3 text-sm text-co-muted">All transactions are secure and encrypted.</p>
@@ -321,20 +319,14 @@ function CheckoutPage() {
               </div>
             ) : (
               <>
-                {/* Mounted as soon as the checkout loads. Email/postcode are
-                    attached to the session as soon as the buyer types them
-                    (the element re-boots with the new buyer data). */}
-                <CooudPaymentElement
+                {/* A fresh payment is prepared whenever the pack or the
+                    delivery option changes, so the charged total always
+                    matches the order summary. */}
+                <StripePaymentElement
                   pack={pack}
                   shipping={shipping?.id ?? null}
                   postcode={postcodeValid ? postcode.trim().toUpperCase() : null}
                   email={emailValid ? email.trim() : null}
-                  getEmail={() => {
-                    const value = formRef.current?.elements.namedItem("email");
-                    const typed =
-                      value instanceof HTMLInputElement ? value.value.trim() : "";
-                    return typed || undefined;
-                  }}
                   onPaid={handlePaid}
                 />
 

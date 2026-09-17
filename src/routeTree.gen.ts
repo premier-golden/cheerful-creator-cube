@@ -11,8 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as ApiPublicCooudWebhookRouteImport } from './routes/api/public/cooud-webhook'
-import { Route as ApiPublicCooudApiSplatRouteImport } from './routes/api/public/cooud-api/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,56 +22,31 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCooudWebhookRoute = ApiPublicCooudWebhookRouteImport.update({
-  id: '/api/public/cooud-webhook',
-  path: '/api/public/cooud-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicCooudApiSplatRoute = ApiPublicCooudApiSplatRouteImport.update({
-  id: '/api/public/cooud-api/$',
-  path: '/api/public/cooud-api/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
-  '/api/public/cooud-webhook': typeof ApiPublicCooudWebhookRoute
-  '/api/public/cooud-api/$': typeof ApiPublicCooudApiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
-  '/api/public/cooud-webhook': typeof ApiPublicCooudWebhookRoute
-  '/api/public/cooud-api/$': typeof ApiPublicCooudApiSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
-  '/api/public/cooud-webhook': typeof ApiPublicCooudWebhookRoute
-  '/api/public/cooud-api/$': typeof ApiPublicCooudApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    '/' | '/checkout' | '/api/public/cooud-webhook' | '/api/public/cooud-api/$'
+  fullPaths: '/' | '/checkout'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    '/' | '/checkout' | '/api/public/cooud-webhook' | '/api/public/cooud-api/$'
-  id:
-    | '__root__'
-    | '/'
-    | '/checkout'
-    | '/api/public/cooud-webhook'
-    | '/api/public/cooud-api/$'
+  to: '/' | '/checkout'
+  id: '__root__' | '/' | '/checkout'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutRoute: typeof CheckoutRoute
-  ApiPublicCooudWebhookRoute: typeof ApiPublicCooudWebhookRoute
-  ApiPublicCooudApiSplatRoute: typeof ApiPublicCooudApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,28 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/cooud-webhook': {
-      id: '/api/public/cooud-webhook'
-      path: '/api/public/cooud-webhook'
-      fullPath: '/api/public/cooud-webhook'
-      preLoaderRoute: typeof ApiPublicCooudWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/cooud-api/$': {
-      id: '/api/public/cooud-api/$'
-      path: '/api/public/cooud-api/$'
-      fullPath: '/api/public/cooud-api/$'
-      preLoaderRoute: typeof ApiPublicCooudApiSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutRoute: CheckoutRoute,
-  ApiPublicCooudWebhookRoute: ApiPublicCooudWebhookRoute,
-  ApiPublicCooudApiSplatRoute: ApiPublicCooudApiSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
