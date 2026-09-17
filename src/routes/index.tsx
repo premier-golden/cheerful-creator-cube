@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Star, Gift, ChevronDown, Facebook, Instagram } from "lucide-react";
+import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-react";
 import { Marquee } from "@/components/site/Marquee";
 import { AccordionItem } from "@/components/site/Accordion";
 import { Reviews } from "@/components/site/Reviews";
@@ -42,8 +42,8 @@ export const Route = createFileRoute("/")({
 const CDN = "https://www.nutritiongeeks.co/cdn/shop/files";
 
 const GALLERY = [
-  heroAsset.url,
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-3_9167bbb8.png?v=1779640309&width=900`,
+  heroAsset.url,
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-4.png?v=1784565383&width=900`,
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-5.png?v=1784565383&width=900`,
   `${CDN}/collagen-glow-up-powder-nutrition-geeks-image-position-7.png?v=1784565397&width=900`,
@@ -195,9 +195,13 @@ function TitleWithEmoji({ emoji, text }: { emoji: string; text: string }) {
 function Stars({ className = "size-4" }: { className?: string }) {
   return (
     <span className="flex items-center gap-0.5 text-amber-400">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <Star key={i} className={`${className} fill-current`} />
-      ))}
+      {[0, 1, 2, 3].map((i) => <Star key={i} className={`${className} fill-current`} />)}
+      <span className={`relative inline-block ${className}`}>
+        <Star className="absolute inset-0 size-full" />
+        <span className="absolute inset-y-0 left-0 w-3/5 overflow-hidden">
+          <Star className={`${className} fill-current`} />
+        </span>
+      </span>
     </span>
   );
 }
@@ -212,8 +216,8 @@ function ProductPage() {
   return (
     <div className="min-h-screen bg-background font-sans text-ink">
       {/* Announcement bar */}
-      <div className="bg-teal text-teal-foreground">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5 text-[13px]">
+      <div className="h-10 bg-teal text-teal-foreground">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-[15px] text-sm">
           <div className="hidden items-center gap-4 md:flex">
             <a href="https://www.facebook.com/nutritiongeeksofficial/" aria-label="Facebook" target="_top" rel="external" className="opacity-90 hover:opacity-100">
               <svg viewBox="0 0 24 24" className="size-4 fill-current"><path d="M13.5 9H16V6h-2.5C11.6 6 10 7.6 10 9.5V11H8v3h2v7h3v-7h2.2l.3-3H13v-1.2c0-.5.2-.8.5-.8Z" /></svg>
@@ -237,46 +241,49 @@ function ProductPage() {
 
       {/* Header */}
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5">
+        <div className="mx-auto flex h-[91px] max-w-7xl items-center justify-between px-[15px] md:h-auto md:px-4 md:py-5">
           <a href="/" className="mx-auto">
             <img
               src={`${CDN}/Asset_5_5849ac1d-6dd2-4bb4-b9bb-62d76a21ee5d.svg?v=1719328855`}
               alt="Nutrition Geeks"
-              className="h-9 w-auto md:h-12"
+              className="h-auto w-[130px] md:h-12 md:w-auto"
             />
           </a>
         </div>
       </header>
 
-      <main className="pb-24 md:pb-0">
+      <main>
         {/* Product */}
-        <section className="mx-auto grid max-w-7xl gap-10 px-4 py-8 md:py-14 lg:grid-cols-2 lg:gap-14">
+        <section className="mx-auto grid max-w-7xl gap-8 px-[15px] pb-8 pt-0 md:px-4 md:py-14 lg:grid-cols-2 lg:gap-14">
           <div className="lg:sticky lg:top-6 lg:self-start">
-            <div className="overflow-hidden rounded-3xl bg-brand-soft">
+            <div className="relative overflow-hidden rounded-[10px] bg-brand-soft">
               <img
                 src={GALLERY[active]}
                 alt="Collagen Glow Up Powder"
-                className="aspect-square w-full object-contain"
+                className="aspect-[1.32/1] w-full object-cover"
               />
+              <button aria-label="Zoom image" className="absolute bottom-3 right-3 grid size-9 place-items-center rounded-full bg-background/90 text-ink">
+                <ZoomIn className="size-[18px]" />
+              </button>
             </div>
-            <div className="mt-4 flex gap-3">
+            <div className="-mx-[15px] mt-3 flex gap-[9px] overflow-x-auto px-[15px] pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0">
               {GALLERY.map((src, i) => (
                 <button
                   key={src}
                   onClick={() => setActive(i)}
                   aria-label={`View image ${i + 1}`}
-                  className={`overflow-hidden rounded-xl border-2 transition-colors ${
-                    active === i ? "border-brand" : "border-transparent"
+                  className={`h-[100px] w-[84px] shrink-0 overflow-hidden rounded-md border transition-colors ${
+                    active === i ? "border-muted-foreground/50" : "border-transparent"
                   }`}
                 >
-                  <img src={src} alt="" className="size-16 object-contain md:size-20" />
+                  <img src={src} alt="" className="size-full object-cover" />
                 </button>
               ))}
             </div>
           </div>
 
-          <div>
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
+          <div className="pt-0 md:pt-0">
+            <h1 className="text-[34px] font-extrabold leading-[1.2] text-ink md:text-5xl">
               Collagen Glow Up Powder
             </h1>
 
@@ -285,15 +292,15 @@ function ProductPage() {
               <span className="font-medium">7475 reviews</span>
             </div>
 
-            <p className="mt-5 flex items-center gap-2 font-semibold">
+            <p className="mt-5 flex items-center gap-2 text-sm font-normal">
               <span aria-hidden="true">⏳</span>1 month supply (420g)
             </p>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-sm leading-[25.2px] text-foreground/85">
               The all-natural, triple-filtered premium collagen powder delivering 12.6g of protein
               per serving.
             </p>
 
-            <ul className="mt-5 space-y-2.5 text-[15px]">
+            <ul className="mt-4 space-y-1.5 text-sm leading-[23px]">
               {[
                 { emoji: "🥤", text: "Powder-based for easy mixing" },
                 { emoji: "☕", text: "Dissolves effortlessly into hot drinks & food" },
@@ -310,7 +317,7 @@ function ProductPage() {
               ))}
             </ul>
 
-            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-teal/40 bg-teal-soft px-4 py-3.5 text-[15px]">
+            <div className="mt-5 flex min-h-[65px] items-center gap-3 rounded-[10px] border border-teal bg-teal-soft px-3.5 py-3 text-sm leading-[19.6px]">
               <span className="grid size-8 shrink-0 place-items-center rounded-full bg-teal text-teal-foreground">
                 <Gift className="size-4" />
               </span>
@@ -320,8 +327,8 @@ function ProductPage() {
               </p>
             </div>
 
-            <div className="mt-6 flex items-end gap-4">
-              <span className="text-4xl font-extrabold text-price">{bundle.price}</span>
+            <div className="mt-5 flex items-end gap-4">
+              <span className="text-[35px] font-medium leading-none text-price">{bundle.price}</span>
               <span className="pb-1 text-sm text-muted-foreground">
                 <s>{bundle.compare}</s>
                 <br />
@@ -329,13 +336,13 @@ function ProductPage() {
               </span>
             </div>
 
-            <div className="my-7 flex items-center gap-4">
+            <div className="my-6 flex items-center gap-3">
               <span className="h-px flex-1 bg-border" />
-              <span className="text-xs font-bold tracking-widest">BUY MORE, SAVE MORE</span>
+              <span className="text-[17px] font-bold">BUY MORE, SAVE MORE</span>
               <span className="h-px flex-1 bg-border" />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-[9px]">
               {BUNDLES.map((b) => {
                 const isSelected = selected === b.id;
                 return (
@@ -349,17 +356,17 @@ function ProductPage() {
                     <button
                       onClick={() => setSelected(b.id)}
                       aria-pressed={isSelected}
-                      className={`w-full overflow-hidden rounded-2xl border-2 text-left transition-colors ${
+                      className={`w-full overflow-hidden rounded-lg border-2 text-left transition-colors ${
                         isSelected
-                          ? "border-ink bg-brand-soft"
+                          ? "border-price bg-brand-soft"
                           : "border-border bg-muted/40 hover:border-brand/40"
                       }`}
                     >
-                      <div className="flex items-center gap-4 p-4">
-                        <img src={b.image} alt={b.title} className="size-16 object-contain" />
+                      <div className="flex items-center gap-3 p-3">
+                        <img src={b.image} alt={b.title} className="size-[84px] object-contain" />
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-lg font-bold">{b.title}</span>
+                            <span className="text-base font-bold">{b.title}</span>
                             <span
                               className={`rounded-md px-2 py-0.5 text-xs font-medium ${
                                 isSelected
@@ -373,7 +380,7 @@ function ProductPage() {
                           <p className="mt-1 text-sm text-muted-foreground">{b.supply}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-extrabold">{b.price}</p>
+                          <p className="text-base font-bold">{b.price}</p>
                           <p className="text-sm text-muted-foreground line-through">{b.compare}</p>
                         </div>
                       </div>
@@ -383,12 +390,10 @@ function ProductPage() {
                           {b.gifts.map((g) => (
                             <div
                               key={g.label}
-                              className={`flex items-center gap-3 px-4 py-2.5 text-sm ${
-                                isSelected ? "bg-ink text-background" : "bg-muted text-ink"
-                              }`}
+                                className="flex items-center gap-3 bg-muted-foreground/50 px-3 py-2 text-sm text-ink"
                             >
-                              <img src={g.image} alt="" className="size-8 object-contain" />
-                              <span className="flex-1 font-semibold">{g.label}</span>
+                              <img src={g.image} alt="" className="size-10 object-contain" />
+                              <span className="relative flex-1 pl-3 font-semibold before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:bg-ink">{g.label}</span>
                               <span className="text-xs line-through opacity-70">{g.value}</span>
                             </div>
                           ))}
@@ -418,7 +423,7 @@ function ProductPage() {
                     ],
                   })
                 }
-                className="flex-1 rounded-full bg-brand px-8 py-4 text-center text-base font-bold text-brand-foreground transition-opacity hover:opacity-90"
+                className="mx-auto flex h-14 w-full max-w-[345px] items-center justify-center rounded-full bg-brand px-8 text-center text-[19px] font-medium text-brand-foreground transition-opacity hover:opacity-90"
               >
                 Buy Now
               </Link>
