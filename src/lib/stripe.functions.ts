@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { getBundle, getShippingMethod, parseAmount, PRODUCT_NAME } from "./offer";
+import { getBundle, getShippingMethod, parseAmount, STRIPE_PRODUCT_NAMES } from "./offer";
 
 const inputSchema = z.object({
   pack: z.string().min(1),
@@ -40,10 +40,7 @@ export const createStripePaymentIntent = createServerFn({ method: "POST" })
     form.set("currency", CURRENCY);
     // Card-only intents keep the Stripe Link signup block out of the Payment Element.
     form.set("payment_method_types[0]", "card");
-    form.set(
-      "description",
-      `${bundle.productName ?? PRODUCT_NAME} — ${bundle.variant ?? bundle.title}`,
-    );
+    form.set("description", STRIPE_PRODUCT_NAMES[bundle.id] ?? bundle.title);
     if (data.email) form.set("receipt_email", data.email);
     form.set("metadata[pack]", bundle.id);
     form.set("metadata[variant]", bundle.variant ?? bundle.title);

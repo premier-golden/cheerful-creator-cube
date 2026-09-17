@@ -85,6 +85,13 @@ export const BUNDLES: Bundle[] = [
 
 export const DEFAULT_BUNDLE_ID = BUNDLES[0]!.id;
 
+/** Product names sent to Stripe as the payment description, keyed by pack id. */
+export const STRIPE_PRODUCT_NAMES: Record<string, string> = {
+  "1": "AI Essentials: Your First Steps with Artificial Intelligence",
+  "3": "AI Productivity Mastery",
+  "6": "AI Business Accelerator",
+};
+
 /** Shipping methods offered once a valid UK postcode is entered. */
 export type ShippingMethod = {
   id: string;
