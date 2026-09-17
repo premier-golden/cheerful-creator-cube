@@ -23,7 +23,9 @@ const inputSchema = z.object({
 export const createStripePaymentIntent = createServerFn({
   method: "POST",
 })
-  .inputValidator((data: unknown) => inputSchema.parse(data))
+  .inputValidator((data: unknown) =>
+    inputSchema.parse(data),
+  )
   .handler(async ({ data }) => {
     const secretKey =
       process.env["STRIPE_SECRET_KEY"];
@@ -44,14 +46,7 @@ export const createStripePaymentIntent = createServerFn({
       getShippingMethod(data.shipping);
 
     /*
-     * Stripe receives ONLY the final amount.
-     *
-     * Example:
-     * £44.99 product + £6.91 delivery
-     * Stripe receives amount = 5190.
-     *
-     * We do NOT tell Stripe which portion
-     * represents shipping.
+     * Stripe receives only the final amount.
      */
     const amount =
       Math.round(
@@ -72,9 +67,8 @@ export const createStripePaymentIntent = createServerFn({
     );
 
     /*
-     * We are intentionally leaving the
-     * current Stripe description unchanged
-     * for now. We'll review it at the end.
+     * Keeping the current description for now.
+     * We will review it before launch.
      */
     form.set(
       "description",
@@ -88,21 +82,6 @@ export const createStripePaymentIntent = createServerFn({
         data.email,
       );
     }
-
-    /*
-     * IMPORTANT:
-     *
-     * No pack.
-     * No shipping.
-     * No shipping_amount.
-     * No address.
-     * No phone.
-     * No customer name.
-     *
-     * The checkout order reference will only
-     * be attached later, immediately before
-     * payment confirmation.
-     */
 
     try {
       const res = await fetch(
@@ -155,8 +134,10 @@ export const createStripePaymentIntent = createServerFn({
 
       return {
         ok: true as const,
+
         clientSecret:
           intent.client_secret,
+
         publishableKey,
         amount,
       };
@@ -165,6 +146,7 @@ export const createStripePaymentIntent = createServerFn({
 
       return {
         ok: false as const,
+
         error:
           "Payment service unavailable. Please try again.",
       };
@@ -206,11 +188,32 @@ export const updateStripePaymentIntent =
       const secretKey =
         process.env["STRIPE_SECRET_KEY"];
 
+      const checkoutInternalSecret =
+        process.env[
+          "CHECKOUT_INTERNAL_SECRET"
+        ];
+
       if (!secretKey) {
         return {
           ok: false as const,
           error:
             "Stripe is not configured.",
+        };
+      }
+
+      /*
+       * This secret exists only on our server.
+       * Never send it to the browser.
+       */
+      if (!checkoutInternalSecret) {
+        console.error(
+          "CHECKOUT_INTERNAL_SECRET is not configured",
+        );
+
+        return {
+          ok: false as const,
+          error:
+            "Checkout service is not configured.",
         };
       }
 
@@ -231,12 +234,10 @@ export const updateStripePaymentIntent =
       }
 
       /*
-       * ------------------------------------------------
+       * ------------------------------------------
        * STEP 1
-       * Store delivery/customer information in Supabase.
-       * ------------------------------------------------
-       *
-       * Stripe never receives these fields.
+       * Store private delivery data in Supabase.
+       * ------------------------------------------
        */
       let checkoutOrderId: string;
 
@@ -250,14 +251,22 @@ export const updateStripePaymentIntent =
               headers: {
                 "Content-Type":
                   "application/json",
+
+                /*
+                 * Server-to-server authentication.
+                 */
+                "x-checkout-secret":
+                  checkoutInternalSecret,
               },
 
               body: JSON.stringify({
                 pack: data.pack,
+
                 shipping:
                   data.shipping,
 
-                email: data.email,
+                email:
+                  data.email,
 
                 firstName:
                   data.firstName,
@@ -265,7 +274,8 @@ export const updateStripePaymentIntent =
                 lastName:
                   data.lastName,
 
-                phone: data.phone,
+                phone:
+                  data.phone,
 
                 country:
                   data.country,
@@ -330,13 +340,10 @@ export const updateStripePaymentIntent =
       }
 
       /*
-       * ------------------------------------------------
+       * ------------------------------------------
        * STEP 2
-       * Attach ONLY the internal order ID to Stripe.
-       * ------------------------------------------------
-       *
-       * This is the only metadata required by
-       * our webhook.
+       * Stripe receives ONLY the internal order ID.
+       * ------------------------------------------
        */
       const form =
         new URLSearchParams();
@@ -396,7 +403,6 @@ export const updateStripePaymentIntent =
 
         return {
           ok: true as const,
-
           checkoutOrderId,
         };
       } catch (error) {
