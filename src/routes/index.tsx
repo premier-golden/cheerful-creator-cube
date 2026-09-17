@@ -430,7 +430,7 @@ function ProductPage() {
             </div>
 
 
-            <div className="mt-8 divide-y divide-border border-y border-border">
+            <div className="mt-7 divide-y divide-border border-y border-border">
               <AccordionItem
                 title={
                   <TitleWithEmoji emoji="🧘‍♀️" text="Health Benefits of Collagen Glow Up Powder" />
@@ -526,25 +526,27 @@ function ProductPage() {
         </section>
 
         {/* As featured in */}
-        <section className="border-y border-border bg-secondary/50 py-10">
-          <h2 className="mb-6 text-center text-xl font-extrabold md:text-2xl">As Featured In</h2>
+        <section className="border-y border-border bg-background py-9 md:bg-secondary/50 md:py-10">
+          <h2 className="mb-6 text-center text-2xl font-medium md:font-extrabold">As Featured In</h2>
           <Marquee />
         </section>
 
         {/* Comparison */}
-        <section className="mx-auto max-w-5xl px-4 py-14 text-center">
-          <h2 className="text-2xl font-extrabold md:text-3xl">
-            Why are customers switching to Collagen Glow Up
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-[15px] text-muted-foreground">
-            Discover why millions of customers are switching to Nutrition Geeks from other brands.
-          </p>
-          <img
-            src={`${CDN}/Collagen_Pli_updated_green_5-COMPARISON_5-COMPARISON_5-COMPARISON_530ce688-13e7-463b-aa99-188a7f545e11.png?v=1729094934&width=1000`}
-            alt="Collagen Glow Up compared with other collagen brands"
-            loading="lazy"
-            className="mx-auto mt-8 w-full max-w-3xl"
-          />
+        <section className="bg-ink text-background">
+          <div className="mx-auto max-w-5xl px-[15px] pt-11 text-center md:px-4 md:py-14">
+            <h2 className="text-[28px] font-extrabold leading-[1.2] md:text-3xl">
+              Why are customers switching to Collagen Glow Up
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-[1.7] text-background/90 md:text-[15px]">
+              Discover why millions of customers are switching to Nutrition Geeks from other brands.
+            </p>
+            <img
+              src={`${CDN}/Collagen_Pli_updated_green_5-COMPARISON_5-COMPARISON_5-COMPARISON_530ce688-13e7-463b-aa99-188a7f545e11.png?v=1729094934&width=1000`}
+              alt="Collagen Glow Up compared with other collagen brands"
+              loading="lazy"
+              className="mx-[-15px] mt-6 aspect-square w-[calc(100%+30px)] max-w-none object-cover md:mx-auto md:mt-8 md:h-auto md:w-full md:max-w-3xl md:object-contain"
+            />
+          </div>
         </section>
 
         {/* Reviews */}
@@ -552,14 +554,14 @@ function ProductPage() {
 
 
         {/* FAQ */}
-        <section className="mx-auto max-w-3xl px-4 py-14">
+        <section className="mx-auto max-w-3xl px-[15px] py-12 md:px-4 md:py-14">
           <h2 className="text-center text-2xl font-extrabold md:text-3xl">
             Frequently Asked Questions
           </h2>
           <p className="mt-3 text-center text-[15px] text-muted-foreground">
             Common questions about Collagen Glow Up Powder
           </p>
-          <div className="mt-8 space-y-3">
+          <div className="mt-8 overflow-hidden rounded-lg border border-border">
             {FAQS.map((f) => (
               <AccordionItem key={f.q} title={f.q} variant="card">
                 {f.a.map((paragraph) => (
@@ -568,33 +570,31 @@ function ProductPage() {
               </AccordionItem>
             ))}
           </div>
-          <div className="mt-8 text-center">
-            <p className="font-semibold">Can't find the answer you're looking for?</p>
-            <a href="#" className="mt-2 inline-block underline underline-offset-4">
-              💬 Click here to ask us!
-            </a>
+            <AccordionItem title="Can't find the answer you're looking for?" variant="card">
+              <a href="#" className="inline-block underline underline-offset-4">Click here to ask us!</a>
+            </AccordionItem>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-ink pb-28 pt-12 text-background md:pb-12">
-        <div className="mx-auto max-w-7xl px-4">
-          <h3 className="text-xl font-extrabold">Sign up for updates, offers and more!</h3>
+      <footer className="bg-ink pb-12 pt-11 text-background">
+        <div className="mx-auto max-w-7xl px-[15px] md:px-4">
+          <h3 className="whitespace-nowrap text-[17px] font-medium leading-[20px]">Sign up for updates, offers and more!</h3>
           <form
             onSubmit={(e) => e.preventDefault()}
-            className="mt-5 flex max-w-xl items-center rounded-full bg-background p-1"
+            className="mt-5 flex h-[47px] max-w-xl items-center overflow-hidden rounded-md bg-background"
           >
             <input
               type="email"
               required
               placeholder="Enter your email"
               aria-label="Email"
-              className="min-w-0 flex-1 bg-transparent px-5 py-3 text-foreground outline-none placeholder:text-muted-foreground"
+              className="min-w-0 flex-1 bg-transparent px-4 py-3 text-foreground outline-none placeholder:text-muted-foreground"
             />
             <button
               type="submit"
-              className="shrink-0 rounded-full bg-brand px-6 py-3 font-bold text-brand-foreground"
+              className="h-full shrink-0 bg-brand px-6 font-semibold text-brand-foreground"
             >
               Sign up
             </button>
@@ -602,7 +602,7 @@ function ProductPage() {
 
           <div className="mt-10 grid gap-10 md:grid-cols-3">
             <div>
-              <h4 className="text-lg font-extrabold">Shop</h4>
+              <h4 className="text-[17px] font-semibold">Shop</h4>
               <ul className="mt-4 space-y-3 text-sm">
                 {["Search", "Shop All Supplements", "Bundles", "Delivery", "Returns & Refunds"].map(
                   (l) => (
@@ -617,7 +617,7 @@ function ProductPage() {
             </div>
 
             <div>
-              <h4 className="text-lg font-extrabold">Company</h4>
+              <h4 className="text-[17px] font-semibold">Company</h4>
               <ul className="mt-4 space-y-3 text-sm">
                 {[
                   "Customer Reviews",
@@ -638,11 +638,11 @@ function ProductPage() {
             </div>
 
             <div>
-              <h4 className="text-lg font-extrabold">Get In Touch</h4>
+              <h4 className="text-[17px] font-semibold">Get In Touch</h4>
               <p className="mt-4 text-sm">customerservices@nutritiongeeks.co</p>
               <div className="mt-6 flex items-center gap-5">
                 <a href="https://www.facebook.com/nutritiongeeksofficial/" aria-label="Facebook" target="_top" rel="external">
-                  <Facebook className="h-6 w-6" strokeWidth={1.75} />
+                  <Facebook className="h-6 w-6 fill-current" strokeWidth={1.75} />
                 </a>
                 <a href="https://www.instagram.com/nutritiongeeks/" aria-label="Instagram" target="_top" rel="external">
                   <Instagram className="h-6 w-6" strokeWidth={1.75} />
@@ -653,26 +653,10 @@ function ProductPage() {
                   </svg>
                 </a>
               </div>
-              <div className="mt-6 flex max-w-xs flex-wrap gap-2">
-                {[
-                  "American Express",
-                  "Apple Pay",
-                  "Diners Club",
-                  "Discover",
-                  "Google Pay",
-                  "Maestro",
-                  "Mastercard",
-                  "PayPal",
-                  "Shop Pay",
-                  "Union Pay",
-                  "Visa",
-                ].map((p) => (
-                  <span
-                    key={p}
-                    className="rounded-md bg-background px-2 py-1 text-[10px] font-bold tracking-tight text-foreground"
-                  >
-                    {p}
-                  </span>
+              <p className="mt-8 text-[17px] font-semibold">Payment Methods</p>
+              <div className="mt-3 flex max-w-sm flex-wrap gap-2" aria-label="Accepted payment methods">
+                {["amex", "applepay", "diners", "discover", "googlepay", "maestro", "mastercard", "paypal", "shopify", "unionpay", "visa"].map((p) => (
+                  <img key={p} src={`https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons/flat/${p}.svg`} alt={p} className="h-6 w-[38px] rounded-sm bg-background object-contain" />
                 ))}
               </div>
             </div>
@@ -697,22 +681,6 @@ function ProductPage() {
       </footer>
 
 
-      {/* Sticky mobile CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 backdrop-blur md:hidden">
-        <div className="flex items-center gap-3">
-          <div className="text-sm">
-            <p className="font-bold text-price">{bundle.price}</p>
-            <p className="text-xs text-muted-foreground line-through">{bundle.compare}</p>
-          </div>
-          <Link
-            to="/checkout"
-            search={{ pack: bundle.id }}
-            className="flex-1 rounded-full bg-brand px-6 py-3.5 text-center font-bold text-brand-foreground"
-          >
-            Buy Now
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
