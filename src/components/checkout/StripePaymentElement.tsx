@@ -40,17 +40,25 @@ function PayForm({
     if (!stripe || !elements) return;
     setSubmitting(true);
     setError(null);
-    const result = await stripe.confirmPayment({
+    // `redirect: "if_required"` keeps the buyer on this page for card payments;
+    // the SDK's overloads don't model it together with `elements`, hence the cast.
+    const confirm = stripe.confirmPayment as unknown as (
+      options: Record<string, unknown>,
+    ) => Promise<{
+      error?: { message?: string };
+      paymentIntent?: { status?: string };
+    }>;
+    const result = await confirm({
       elements,
       redirect: "if_required",
       confirmParams: buyerEmail ? { receipt_email: buyerEmail } : {},
-    } as Parameters<typeof stripe.confirmPayment>[0]);
+    });
     if (result.error) {
       setError(result.error.message ?? "Payment failed. Please try another card.");
       setSubmitting(false);
       return;
     }
-    const intent = (result as { paymentIntent?: { status?: string } }).paymentIntent;
+    const intent = result.paymentIntent;
     if (intent && (intent.status === "succeeded" || intent.status === "processing")) {
       onPaid?.();
       return;
