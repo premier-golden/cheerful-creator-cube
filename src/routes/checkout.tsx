@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  ChevronDown,
   Lock,
   Truck,
   ShieldCheck,
@@ -35,6 +36,7 @@ import logoAsset from "@/assets/nutrition-geeks-logo.png.asset.json";
 import { CheckoutSummary } from "@/components/checkout/CheckoutSummary";
 import { StripePaymentElement } from "@/components/checkout/StripePaymentElement";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
+import { Button } from "@/components/ui/button";
 
 import {
   Field,
@@ -167,6 +169,11 @@ function CheckoutPage() {
     string | null
   >(null);
 
+  const [
+    summaryOpen,
+    setSummaryOpen,
+  ] = useState(false);
+
   const postcodeValid =
     isValidUkPostcode(
       postcode,
@@ -190,6 +197,12 @@ function CheckoutPage() {
     ) +
     (shipping?.amount ??
       0);
+
+  const compareTotal =
+    parseAmount(
+      bundle.compare,
+    ) +
+    (shipping?.amount ?? 0);
 
   const tiktokContents = [
     {
@@ -369,7 +382,7 @@ function CheckoutPage() {
     <div className="min-h-screen bg-co-bg text-co-fg">
       {/* Header */}
       <header className="border-b border-co-border bg-white">
-        <div className="relative mx-auto flex h-[72px] max-w-[1200px] items-center justify-center px-5 lg:px-10">
+        <div className="relative mx-auto flex h-[100px] max-w-[1200px] items-center justify-center px-[14px] lg:h-[72px] lg:px-10">
           <Link
             to="/"
             aria-label="Nutrion Life — back to store"
@@ -379,7 +392,7 @@ function CheckoutPage() {
                 logoAsset.url
               }
               alt="Nutrion Life"
-              className="h-9 w-auto lg:h-10"
+              className="h-auto w-[130px] lg:h-10 lg:w-auto"
               width={4435}
               height={1826}
             />
@@ -388,7 +401,7 @@ function CheckoutPage() {
           <Link
             to="/"
             aria-label="Back to store"
-            className="absolute right-5 top-1/2 -translate-y-1/2 text-co-accent hover:opacity-80 lg:right-10"
+            className="absolute right-[14px] top-1/2 -translate-y-1/2 text-ink hover:opacity-80 lg:right-10"
           >
             <ShoppingBag
               className="size-6"
@@ -401,7 +414,41 @@ function CheckoutPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:gap-16 lg:px-10 lg:py-12">
+      <section className="border-b border-co-border bg-co-surface lg:hidden">
+        <Button
+          type="button"
+          variant="ghost"
+          aria-expanded={summaryOpen}
+          aria-controls="mobile-order-summary"
+          onClick={() => setSummaryOpen((open) => !open)}
+          className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between rounded-none px-[14px] text-co-fg hover:bg-co-surface"
+        >
+          <span className="flex items-center gap-2 text-sm font-medium">
+            Order summary
+            <ChevronDown
+              className={`size-4 transition-transform ${summaryOpen ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+          </span>
+          <span className="flex items-baseline gap-2">
+            {compareTotal > orderTotal ? (
+              <span className="text-xs font-normal text-co-muted line-through">
+                {formatAmount(compareTotal)}
+              </span>
+            ) : null}
+            <span className="text-base font-semibold">{formatAmount(orderTotal)}</span>
+          </span>
+        </Button>
+        <div
+          id="mobile-order-summary"
+          hidden={!summaryOpen}
+          className="border-t border-co-border px-[14px] py-5"
+        >
+          <CheckoutSummary bundle={bundle} shipping={shipping} />
+        </div>
+      </section>
+
+      <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-[14px] py-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:gap-16 lg:px-10 lg:py-12">
         {/* LEFT: form */}
         <main className="min-w-0">
           <h1 className="sr-only">
@@ -415,7 +462,7 @@ function CheckoutPage() {
             }
           >
             {/* Contact */}
-            <section className="mt-2">
+            <section>
               <div className="mb-3">
                 <SectionTitle>
                   Contact
@@ -442,7 +489,7 @@ function CheckoutPage() {
             </section>
 
             {/* Delivery */}
-            <section className="mt-8">
+            <section className="mt-9">
               <SectionTitle>
                 Delivery
               </SectionTitle>
@@ -456,7 +503,7 @@ function CheckoutPage() {
                   }
                 />
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <Field
                     label="First name"
                     name="firstName"
@@ -514,7 +561,7 @@ function CheckoutPage() {
                   autoComplete="address-line2"
                 />
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <Field
                     label="City"
                     name="city"
@@ -558,25 +605,23 @@ function CheckoutPage() {
                   }
                 />
 
-                <CheckLine>
-                  Save this
-                  information for
-                  next time
-                </CheckLine>
+                <div className="hidden md:block">
+                  <CheckLine>
+                    Save this information for next time
+                  </CheckLine>
+                </div>
               </div>
             </section>
 
             {/* Shipping method */}
-            <section className="mt-8">
-              <SectionTitle>
-                Shipping method
-              </SectionTitle>
+            <section className="mt-9">
+              <h2 className="mb-3 text-base font-bold text-co-fg">Shipping method</h2>
 
               {postcodeValid ? (
                 <div
                   role="radiogroup"
                   aria-label="Shipping method"
-                  className="divide-y divide-co-border overflow-hidden rounded-xl border border-co-border bg-co-bg"
+                  className="divide-y divide-co-border overflow-hidden rounded-lg border border-co-border bg-co-surface"
                 >
                   {SHIPPING_METHODS.map(
                     (
@@ -591,7 +636,7 @@ function CheckoutPage() {
                           key={
                             method.id
                           }
-                          className={`flex cursor-pointer items-center gap-3 px-4 py-4 text-sm transition-colors ${
+                          className={`flex min-h-12 cursor-pointer items-center gap-3 px-3.5 py-3 text-sm transition-colors ${
                             selected
                               ? "bg-co-surface"
                               : "hover:bg-co-surface/60"
@@ -643,15 +688,7 @@ function CheckoutPage() {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-3 rounded-md border border-co-border bg-co-surface px-4 py-5 text-sm text-co-muted">
-                  <Truck
-                    className="size-4 shrink-0"
-                    strokeWidth={
-                      1.75
-                    }
-                    aria-hidden="true"
-                  />
-
+                <div className="rounded-lg border border-co-border bg-co-surface px-3.5 py-4 text-sm text-co-muted">
                   Enter your
                   shipping address
                   to view available
@@ -661,7 +698,7 @@ function CheckoutPage() {
             </section>
 
             {/* Payment */}
-            <section className="mt-8">
+            <section className="mt-9">
               <SectionTitle>
                 Payment
               </SectionTitle>
@@ -767,41 +804,10 @@ function CheckoutPage() {
             </section>
           </form>
 
-          <footer className="mt-10 border-t border-co-border pt-5 text-xs text-co-muted">
-            <div className="flex flex-wrap gap-4">
-              <a
-                href="#"
-                className="underline underline-offset-2"
-              >
-                Refund policy
-              </a>
-
-              <a
-                href="#"
-                className="underline underline-offset-2"
-              >
-                Shipping policy
-              </a>
-
-              <a
-                href="#"
-                className="underline underline-offset-2"
-              >
-                Privacy policy
-              </a>
-
-              <a
-                href="#"
-                className="underline underline-offset-2"
-              >
-                Terms of service
-              </a>
-            </div>
-          </footer>
         </main>
 
         {/* RIGHT: order summary */}
-        <aside className="min-w-0 lg:border-l lg:border-co-border lg:pl-16">
+        <aside className="hidden min-w-0 lg:block lg:border-l lg:border-co-border lg:pl-16">
           <div className="lg:sticky lg:top-10">
             <h2 className="mb-4 flex items-center gap-2 text-sm font-medium text-co-muted">
               <Lock

@@ -26,14 +26,17 @@ export function CheckoutSummary({
 
   return (
     <div className="space-y-5">
-      <ul className="space-y-4">
-        <li className="flex items-start gap-4">
-          <div className="size-16 shrink-0 overflow-hidden rounded-md border border-co-border bg-co-surface">
+      <ul className="space-y-3.5">
+        <li className="flex items-start gap-3.5">
+          <div className="relative size-16 shrink-0 overflow-visible rounded-lg border border-co-border bg-co-surface">
             <img
               src={bundle.image}
               alt={bundle.productName ?? PRODUCT_NAME}
-              className="size-full object-contain"
+              className="size-full rounded-lg object-contain"
             />
+            <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-co-muted text-[11px] font-medium text-co-bg">
+              {bundle.quantity ?? 1}
+            </span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-medium leading-5 text-co-fg">
@@ -51,9 +54,12 @@ export function CheckoutSummary({
         </li>
 
         {bundle.gifts.map((g) => (
-          <li key={g.label} className="flex items-start gap-4">
-            <div className="size-16 shrink-0 overflow-hidden rounded-md border border-co-border bg-co-surface">
-              <img src={g.image} alt="" className="size-full object-contain" />
+          <li key={g.label} className="flex items-start gap-3.5">
+            <div className="relative size-16 shrink-0 overflow-visible rounded-lg border border-co-border bg-co-surface">
+              <img src={g.image} alt="" className="size-full rounded-lg object-contain" />
+              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-co-muted text-[11px] font-medium text-co-bg">
+                1
+              </span>
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-medium leading-5 text-co-fg">
