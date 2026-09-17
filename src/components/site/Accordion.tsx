@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Minus, Plus } from "lucide-react";
 
 export function AccordionItem({
   title,
@@ -17,7 +17,7 @@ export function AccordionItem({
     <div
       className={
         variant === "card"
-          ? "overflow-hidden rounded-2xl border border-border bg-card"
+          ? "overflow-hidden border-b border-border bg-card last:border-b-0"
           : "border-b border-border"
       }
     >
@@ -25,15 +25,19 @@ export function AccordionItem({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left text-[15px] font-semibold text-ink md:text-base"
+        className={`flex w-full items-center gap-3 text-left text-sm font-medium leading-[25.2px] text-ink md:text-base ${
+          variant === "card" ? "min-h-[63px] px-3 py-[18px]" : "min-h-[63px] justify-between px-1 py-[18px]"
+        }`}
       >
-        <span>{title}</span>
-        <ChevronDown
-          className={`size-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
-        />
+        {variant === "card" &&
+          (open ? <Minus className="size-3.5 shrink-0" /> : <Plus className="size-3.5 shrink-0" />)}
+        <span className="flex-1">{title}</span>
+        {variant === "plain" && (
+          <ChevronDown className={`size-4 shrink-0 text-ink transition-transform ${open ? "rotate-180" : ""}`} />
+        )}
       </button>
       {open && (
-        <div className="space-y-4 px-4 pb-5 text-[15px] leading-relaxed text-muted-foreground">
+        <div className={`space-y-4 pb-5 text-sm leading-[1.8] text-muted-foreground ${variant === "card" ? "px-10" : "px-1"}`}>
           {children}
         </div>
       )}

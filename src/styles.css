@@ -66,6 +66,7 @@
   --color-teal-foreground: var(--teal-foreground);
   --color-teal-soft: var(--teal-soft);
   --color-price: var(--price);
+  --color-gift-strip: var(--gift-strip);
   /* Checkout-only tokens (independent from the Main Offer palette) */
   --color-co-bg: var(--co-bg);
   --color-co-surface: var(--co-surface);
@@ -126,14 +127,15 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
-  --brand: oklch(0.63 0.16 25);
+  --brand: oklch(0.69 0.17 51);
   --brand-foreground: oklch(1 0 0);
-  --brand-soft: oklch(0.9 0.055 25);
-  --ink: oklch(0.28 0.045 168);
+  --brand-soft: oklch(0.91 0.06 18);
+  --ink: oklch(0.33 0.045 190);
   --teal: oklch(0.7 0.11 224);
   --teal-foreground: oklch(1 0 0);
-  --teal-soft: oklch(0.97 0.02 224);
+  --teal-soft: oklch(0.97 0.022 219);
   --price: oklch(0.58 0.22 27);
+  --gift-strip: oklch(0.73 0 0);
   /* Checkout palette */
   --co-bg: oklch(1 0 0);
   --co-surface: oklch(0.975 0.002 247);
