@@ -25,6 +25,7 @@ import {
   createStripePaymentIntent,
   updateStripePaymentIntent,
 } from "@/lib/stripe.functions";
+import { Button } from "@/components/ui/button";
 
 /** This checkout sells to the United Kingdom only. */
 const LOCALE = "en-GB" as const;
@@ -326,7 +327,7 @@ function PayForm({
   }
 
   return (
-    <div>
+    <div className="overflow-hidden rounded-xl border border-co-border bg-co-bg p-3.5 md:border-0 md:p-0">
       <PaymentElement
         options={{
           layout: "tabs",
@@ -343,6 +344,9 @@ function PayForm({
            */
           defaultValues: {
             billingDetails: {
+              address: {
+                country: "GB",
+              },
               ...(buyerEmail
                 ? {
                     email:
@@ -360,7 +364,7 @@ function PayForm({
         </p>
       )}
 
-      <button
+      <Button
         type="button"
         onClick={handlePay}
         disabled={
@@ -368,7 +372,7 @@ function PayForm({
           !stripe ||
           !elements
         }
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef7a1a] px-6 py-4 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="mt-5 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-co-cta px-6 text-base font-semibold text-co-bg transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {submitting && (
           <Loader2
@@ -381,7 +385,7 @@ function PayForm({
         {submitting
           ? "Processing…"
           : "Pay now"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -596,8 +600,12 @@ export function StripePaymentElement({
                 LOCALE,
 
               appearance: {
-                theme:
-                  "stripe",
+                theme: "stripe",
+                variables: {
+                  colorPrimary: "#1d3f42",
+                  borderRadius: "12px",
+                  fontFamily: "Poppins, sans-serif",
+                },
               },
             }}
           >

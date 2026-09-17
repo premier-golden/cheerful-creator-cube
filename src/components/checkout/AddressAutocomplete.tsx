@@ -97,7 +97,7 @@ export function AddressAutocomplete({
           aria-expanded={open}
           aria-autocomplete="list"
           aria-controls={`${name}-suggestions`}
-          className="peer h-[52px] w-full rounded-xl border border-co-border bg-co-bg px-3 pr-11 pt-4 text-sm text-co-fg focus:border-co-accent focus:outline-none focus:ring-1 focus:ring-co-accent"
+          className="peer h-12 w-full rounded-xl border border-co-border bg-co-bg px-3 pr-11 pt-4 text-sm text-co-fg focus:border-co-accent focus:outline-none focus:ring-1 focus:ring-co-accent md:h-[52px]"
         />
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-co-muted transition-all peer-focus:top-2.5 peer-focus:translate-y-0 peer-focus:text-[11px] peer-[&:not(:placeholder-shown)]:top-2.5 peer-[&:not(:placeholder-shown)]:translate-y-0 peer-[&:not(:placeholder-shown)]:text-[11px]">
           {label}

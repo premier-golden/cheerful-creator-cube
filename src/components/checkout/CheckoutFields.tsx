@@ -38,7 +38,7 @@ export function Field({
         placeholder=" "
         {...(value !== undefined ? { value } : {})}
         onChange={onChange ? (e) => onChange(e.currentTarget.value) : undefined}
-        className={`peer h-[52px] w-full rounded-xl border border-co-border bg-co-bg px-3 pt-4 text-sm text-co-fg focus:border-co-accent focus:outline-none focus:ring-1 focus:ring-co-accent ${icon ? "pr-11" : ""}`}
+        className={`peer h-12 w-full rounded-xl border border-co-border bg-co-bg px-3 pt-4 text-sm text-co-fg focus:border-co-accent focus:outline-none focus:ring-1 focus:ring-co-accent md:h-[52px] ${icon ? "pr-11" : ""}`}
       />
 
 
@@ -70,7 +70,7 @@ export function SelectField({
       <span className="absolute left-3 top-2 text-[11px] text-co-muted">{label}</span>
       <select
         name={name}
-        className="h-[52px] w-full appearance-none rounded-xl border border-co-border bg-co-bg px-3 pt-4 text-sm text-co-fg focus:border-co-accent focus:outline-none focus:ring-1 focus:ring-co-accent"
+        className="h-12 w-full appearance-none rounded-xl border border-co-border bg-co-bg px-3 pt-4 text-sm text-co-fg focus:border-co-accent focus:outline-none focus:ring-1 focus:ring-co-accent md:h-[52px]"
         defaultValue={options[0]}
       >
         {options.map((o) => (
@@ -88,10 +88,10 @@ export function SelectField({
 
 export function CheckLine({ children }: { children: ReactNode }) {
   return (
-    <label className="flex items-center gap-2.5 text-sm text-co-fg">
+    <label className="flex items-center gap-2.5 text-sm leading-5 text-co-fg">
       <input
         type="checkbox"
-        className="size-4 rounded-sm border-co-border text-co-accent accent-[var(--co-accent)]"
+        className="size-5 rounded-sm border-co-border text-co-accent accent-[var(--co-accent)]"
       />
       <span>{children}</span>
     </label>
@@ -99,5 +99,5 @@ export function CheckLine({ children }: { children: ReactNode }) {
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="mb-3 text-lg font-medium text-co-fg">{children}</h2>;
+  return <h2 className="mb-3 text-xl font-bold text-co-fg">{children}</h2>;
 }
