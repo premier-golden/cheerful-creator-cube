@@ -181,6 +181,11 @@ function CheckoutPage() {
     setSummaryOpen,
   ] = useState(false);
 
+  const [
+    paymentSummaryOpen,
+    setPaymentSummaryOpen,
+  ] = useState(false);
+
   const postcodeValid =
     isValidUkPostcode(
       postcode,
@@ -767,16 +772,57 @@ function CheckoutPage() {
                     }
                     orderSummary={
                       <section aria-labelledby="payment-order-summary-title">
-                        <h2
-                          id="payment-order-summary-title"
-                          className="mb-4 text-xl font-bold text-co-fg"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          aria-expanded={paymentSummaryOpen}
+                          aria-controls="payment-order-summary-details"
+                          onClick={() =>
+                            setPaymentSummaryOpen((open) => !open)
+                          }
+                          className="flex h-auto w-full items-center gap-3 rounded-none p-0 text-co-fg hover:bg-transparent"
                         >
-                          Order summary
-                        </h2>
-                        <CheckoutSummary
-                          bundle={bundle}
-                          shipping={shipping}
-                        />
+                          <span className="size-10 shrink-0 overflow-hidden rounded-lg border border-co-border bg-co-surface">
+                            <img
+                              src={bundle.image}
+                              alt=""
+                              className="size-full object-contain"
+                            />
+                          </span>
+                          <span className="min-w-0 flex-1 text-left">
+                            <span
+                              id="payment-order-summary-title"
+                              className="block text-base font-semibold"
+                            >
+                              Total
+                            </span>
+                            <span className="block text-xs font-normal text-co-muted">
+                              {bundle.quantity ?? 1} item{(bundle.quantity ?? 1) > 1 ? "s" : ""}
+                            </span>
+                          </span>
+                          <span className="flex shrink-0 items-center gap-2">
+                            <span className="text-[11px] font-normal text-co-muted">
+                              GBP
+                            </span>
+                            <span className="text-xl font-semibold">
+                              {formatAmount(orderTotal)}
+                            </span>
+                            <ChevronDown
+                              className={`size-4 transition-transform ${paymentSummaryOpen ? "rotate-180" : ""}`}
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </Button>
+                        <div
+                          id="payment-order-summary-details"
+                          hidden={!paymentSummaryOpen}
+                          className="mt-5 border-t border-co-border pt-5"
+                        >
+                          <CheckoutSummary
+                            bundle={bundle}
+                            shipping={shipping}
+                          />
+                        </div>
                       </section>
                     }
                     onPaid={
