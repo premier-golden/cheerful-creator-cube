@@ -19,6 +19,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 
 import {
@@ -66,12 +67,14 @@ function PayForm({
   shipping,
   email,
   clientSecret,
+  orderSummary,
   onPaid,
 }: {
   pack: string;
   shipping: string | null;
   email: string | null;
   clientSecret: string;
+  orderSummary?: ReactNode;
   onPaid?:
     (() => void) | undefined;
 }) {
@@ -364,6 +367,12 @@ function PayForm({
         </p>
       )}
 
+      {orderSummary && (
+        <div className="mt-6 border-t border-co-border pt-6 lg:hidden">
+          {orderSummary}
+        </div>
+      )}
+
       <Button
         type="button"
         onClick={handlePay}
@@ -401,6 +410,7 @@ export function StripePaymentElement({
   shipping,
   postcode: _postcode,
   email,
+  orderSummary,
   onPaid,
 }: {
   pack: string;
@@ -410,6 +420,7 @@ export function StripePaymentElement({
     string | null;
   email?:
     string | null;
+  orderSummary?: ReactNode;
   onPaid?: () => void;
 }) {
   const createIntent =
@@ -621,6 +632,9 @@ export function StripePaymentElement({
               }
               clientSecret={
                 clientSecret
+              }
+              orderSummary={
+                orderSummary
               }
               onPaid={
                 onPaid

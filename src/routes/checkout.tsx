@@ -765,6 +765,20 @@ function CheckoutPage() {
                         ? email.trim()
                         : null
                     }
+                    orderSummary={
+                      <section aria-labelledby="payment-order-summary-title">
+                        <h2
+                          id="payment-order-summary-title"
+                          className="mb-4 text-xl font-bold text-co-fg"
+                        >
+                          Order summary
+                        </h2>
+                        <CheckoutSummary
+                          bundle={bundle}
+                          shipping={shipping}
+                        />
+                      </section>
+                    }
                     onPaid={
                       handlePaid
                     }
