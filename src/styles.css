@@ -146,7 +146,7 @@
   --co-accent: oklch(0.33 0.045 190);
   --co-savings: oklch(0.95 0.05 150);
   --co-savings-fg: oklch(0.42 0.11 150);
-  --co-cta: oklch(0.14 0.005 250);
+  --co-cta: oklch(0.69 0.171 50.8); /* #EB761D */
   --co-express-1: oklch(0.52 0.19 285);
   --co-express-2: oklch(0.55 0.13 250);
   --co-express-3: oklch(0.3 0.01 250);
