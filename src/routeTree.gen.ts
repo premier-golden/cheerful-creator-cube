@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ApiPublicUtmifyStripeRouteImport } from './routes/api/public/utmify-stripe'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUtmifyStripeRoute = ApiPublicUtmifyStripeRouteImport.update({
+  id: '/api/public/utmify-stripe',
+  path: '/api/public/utmify-stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
+  '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
+  '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
+  '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/checkout'
+  fullPaths: '/' | '/checkout' | '/api/public/utmify-stripe'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkout'
-  id: '__root__' | '/' | '/checkout'
+  to: '/' | '/checkout' | '/api/public/utmify-stripe'
+  id: '__root__' | '/' | '/checkout' | '/api/public/utmify-stripe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutRoute: typeof CheckoutRoute
+  ApiPublicUtmifyStripeRoute: typeof ApiPublicUtmifyStripeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/utmify-stripe': {
+      id: '/api/public/utmify-stripe'
+      path: '/api/public/utmify-stripe'
+      fullPath: '/api/public/utmify-stripe'
+      preLoaderRoute: typeof ApiPublicUtmifyStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutRoute: CheckoutRoute,
+  ApiPublicUtmifyStripeRoute: ApiPublicUtmifyStripeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
