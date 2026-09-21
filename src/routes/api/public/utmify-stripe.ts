@@ -177,6 +177,60 @@ type StripeIntent = {
   > | null;
 };
 
+/**
+ * Persists the campaign parameters of a paid order so
+ * the internal dashboard can show them in real time.
+ * Never throws: reporting must not break the webhook.
+ */
+async function storeAttribution(
+  intent: StripeIntent,
+  metadata: Record<string, string>,
+  amountInCents: number,
+  name: string | undefined,
+  email: string,
+  utmifyStatus: string,
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    await supabaseAdmin
+      .from("sale_attributions")
+      .upsert(
+        {
+          stripe_payment_intent_id: intent.id!,
+          amount_cents: amountInCents,
+          currency: intent.currency ?? "gbp",
+          pack: metadata["pack"] ?? null,
+          customer_name: name || null,
+          customer_email: email || null,
+          customer_country:
+            metadata["customer_country"] ?? null,
+          utm_source: metadata["utm_source"] ?? null,
+          utm_medium: metadata["utm_medium"] ?? null,
+          utm_campaign: metadata["utm_campaign"] ?? null,
+          utm_content: metadata["utm_content"] ?? null,
+          utm_term: metadata["utm_term"] ?? null,
+          src: metadata["src"] ?? null,
+          sck: metadata["sck"] ?? null,
+          fbclid: metadata["fbclid"] ?? null,
+          ttclid: metadata["ttclid"] ?? null,
+          gclid: metadata["gclid"] ?? null,
+          livemode: intent.livemode !== false,
+          utmify_status: utmifyStatus,
+        },
+        { onConflict: "stripe_payment_intent_id" },
+      );
+  } catch (error) {
+    console.error(
+      "Could not store sale attribution",
+      error,
+    );
+  }
+}
+
+
 export const Route =
   createFileRoute(
     "/api/public/utmify-stripe",
@@ -189,6 +243,9 @@ export const Route =
           const webhookSecret =
             process.env[
               "STRIPE_UTMIFY_WEBHOOK_SECRET"
+            ] ||
+            process.env[
+              "STRIPE_WEBHOOK_SECRET"
             ];
 
           const utmifyToken =
@@ -420,6 +477,15 @@ export const Route =
                 await res.text(),
               );
 
+              await storeAttribution(
+                intent,
+                metadata,
+                amountInCents,
+                name,
+                email,
+                `rejected:${res.status}`,
+              );
+
               /*
                * 200 keeps Stripe from retrying
                * forever on a permanent rejection.
@@ -434,11 +500,29 @@ export const Route =
               error,
             );
 
+            await storeAttribution(
+              intent,
+              metadata,
+              amountInCents,
+              name,
+              email,
+              "failed",
+            );
+
             return new Response(
               "retry later",
               { status: 500 },
             );
           }
+
+          await storeAttribution(
+            intent,
+            metadata,
+            amountInCents,
+            name,
+            email,
+            "sent",
+          );
 
           return new Response("ok");
         },
