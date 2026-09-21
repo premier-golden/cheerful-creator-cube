@@ -186,7 +186,7 @@ async function storeAttribution(
   intent: StripeIntent,
   metadata: Record<string, string>,
   amountInCents: number,
-  name: string,
+  name: string | undefined,
   email: string,
   utmifyStatus: string,
 ): Promise<void> {
