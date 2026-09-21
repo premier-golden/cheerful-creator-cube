@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      checkout_events: {
+        Row: {
+          checkout_session_id: string
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          event: string
+          id: string
+          pack: string | null
+          pathname: string | null
+          shipping: string | null
+          stripe_payment_intent_id: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          checkout_session_id: string
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          event: string
+          id?: string
+          pack?: string | null
+          pathname?: string | null
+          shipping?: string | null
+          stripe_payment_intent_id?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          checkout_session_id?: string
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          event?: string
+          id?: string
+          pack?: string | null
+          pathname?: string | null
+          shipping?: string | null
+          stripe_payment_intent_id?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       checkout_initiations: {
         Row: {
           created_at: string
