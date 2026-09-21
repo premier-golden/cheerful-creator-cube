@@ -623,7 +623,9 @@ function CheckoutPage() {
       const trackInvalid = (
         code: string,
         message: string,
-      ) =>
+      ) => {
+        if (options?.silent) return;
+
         trackCheckout(
           "form_validation_failed",
           {
@@ -633,6 +635,15 @@ function CheckoutPage() {
             errorMessage: message,
           },
         );
+      };
+
+      const mark = (
+        element: Element | null,
+      ) => {
+        if (options?.silent) return;
+
+        markInvalid(element);
+      };
 
       for (const check of checks) {
         const element = field(
@@ -644,7 +655,7 @@ function CheckoutPage() {
           "";
 
         if (!raw) {
-          markInvalid(element);
+          mark(element);
 
           trackInvalid(
             check.missingCode,
@@ -658,7 +669,7 @@ function CheckoutPage() {
           check.isValid &&
           !check.isValid(raw)
         ) {
-          markInvalid(element);
+          mark(element);
 
           const message =
             check.invalidMessage ??
@@ -674,14 +685,17 @@ function CheckoutPage() {
         }
       }
 
-      if (!shipping) {
+      if (
+        !options?.skipShipping &&
+        !shipping
+      ) {
         const firstShipping =
           form.querySelector(
             "input[name='shippingMethod']",
           ) as HTMLInputElement | null;
 
         if (firstShipping) {
-          markInvalid(firstShipping);
+          mark(firstShipping);
         }
 
         trackInvalid(
