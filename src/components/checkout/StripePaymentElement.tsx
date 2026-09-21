@@ -467,12 +467,19 @@ function PayForm({
         onReady={() => {
           setElementReady(true);
           setElementError(null);
+          track("payment_element_loaded");
         }}
-        onLoadError={() =>
+        onLoadError={(event) => {
           setElementError(
             "The secure payment form could not be loaded. Please refresh the page and try again.",
-          )
-        }
+          );
+
+          track("payment_element_failed", {
+            errorCode: event?.error
+              ? stripeErrorCode(event.error)
+              : "payment_element_load_failed",
+          });
+        }}
         options={{
           layout: "tabs",
 
