@@ -81,7 +81,13 @@ function AdminPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const result = await fetchRows({ data: { password, limit: 100 } });
+        const result = await fetchRows({
+          data: {
+            password,
+            limit: 100,
+            ...(campaign ? { campaign } : {}),
+          },
+        });
         if (cancelled) return;
         if (!result.ok) {
           setAuthed(false);
