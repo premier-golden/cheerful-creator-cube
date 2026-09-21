@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listSaleAttributions,
+  type CheckoutInitiationRow,
   type SaleAttributionRow,
 } from "@/lib/admin.functions";
 
@@ -52,6 +53,9 @@ function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [rows, setRows] = useState<Array<SaleAttributionRow>>([]);
+  const [initiations, setInitiations] = useState<
+    Array<CheckoutInitiationRow>
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
