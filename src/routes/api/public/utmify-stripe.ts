@@ -460,6 +460,12 @@ export const Route =
 
               userCommissionInCents:
                 amountInCents,
+
+              // Without this Utmify assumes BRL and
+              // reports GBP sales as reais.
+              currency: (
+                intent.currency ?? "gbp"
+              ).toUpperCase(),
             },
 
             isTest:
