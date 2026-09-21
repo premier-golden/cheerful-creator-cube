@@ -83,6 +83,9 @@ export function getCheckoutSessionId(): string {
 /** Events that must be recorded at most once per session. */
 const onceOnly = new Set<CheckoutEvent>([
   "checkout_view",
+  "address_started",
+  "address_completed",
+  "shipping_options_viewed",
   "payment_element_loaded",
   "payment_succeeded",
 ]);
