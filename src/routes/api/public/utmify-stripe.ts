@@ -175,6 +175,8 @@ type StripeIntent = {
     string,
     string
   > | null;
+
+
 };
 
 export const Route =
