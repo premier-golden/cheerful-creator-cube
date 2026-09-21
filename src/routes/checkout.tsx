@@ -21,8 +21,13 @@ import {
   tiktokTrack,
 } from "@/lib/tiktok";
 
-import { getAttribution } from "@/lib/attribution";
+import {
+  ATTRIBUTION_KEYS,
+  getAttribution,
+} from "@/lib/attribution";
 import { recordCheckoutInitiation } from "@/lib/ic.functions";
+import { getStripePaymentIntentStatus } from "@/lib/stripe.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 import {
   getBundle,
@@ -68,14 +73,36 @@ export const Route =
         string,
         unknown
       >,
-    ) => ({
-      pack:
-        search["pack"] == null
-          ? DEFAULT_BUNDLE_ID
-          : String(
-              search["pack"],
-            ),
-    }),
+    ) => {
+      const parsed: Record<
+        string,
+        string
+      > = {
+        pack:
+          search["pack"] == null
+            ? DEFAULT_BUNDLE_ID
+            : String(
+                search["pack"],
+              ),
+      };
+
+      /*
+       * Campaign parameters travel in the URL so
+       * attribution survives private/in-app browsers
+       * where sessionStorage is unavailable.
+       */
+      for (const key of ATTRIBUTION_KEYS) {
+        const value = search[key];
+
+        if (value != null) {
+          parsed[key] = String(value);
+        }
+      }
+
+      return parsed as {
+        pack: string;
+      } & Record<string, string>;
+    },
 
     head: () => ({
       meta: [
