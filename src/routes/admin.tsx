@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listSaleAttributions,
   type CheckoutInitiationRow,
+  type FunnelErrorRow,
+  type FunnelStepRow,
   type SaleAttributionRow,
 } from "@/lib/admin.functions";
 
