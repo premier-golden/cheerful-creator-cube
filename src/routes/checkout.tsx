@@ -26,6 +26,7 @@ import {
   getAttribution,
 } from "@/lib/attribution";
 import { recordCheckoutInitiation } from "@/lib/ic.functions";
+import { trackCheckout } from "@/lib/checkout-tracking";
 import { getStripePaymentIntentStatus } from "@/lib/stripe.functions";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -313,6 +314,11 @@ function CheckoutPage() {
       },
     }).catch(() => {});
 
+    /* Funnel step: entry into the checkout. */
+    trackCheckout("checkout_view", {
+      pack: bundle.id,
+    });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pack]);
 
@@ -360,6 +366,15 @@ function CheckoutPage() {
         }
 
         paidRef.current = true;
+
+        /*
+         * Funnel step: only a真 Stripe `succeeded`
+         * reaches this callback.
+         */
+        trackCheckout("payment_succeeded", {
+          pack: bundle.id,
+          shipping: shipping?.id ?? null,
+        });
 
         const form =
           formRef.current;
