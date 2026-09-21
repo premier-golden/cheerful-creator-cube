@@ -91,7 +91,7 @@ export const trackCheckoutStep = createServerFn({
     const userAgent =
       clean(getRequestHeader("user-agent"), 300);
 
-    const row: Record<string, string | null> = {
+    const row = {
       checkout_session_id: data.sessionId,
       event: data.event,
       pack: clean(data.pack, 50),
@@ -104,11 +104,15 @@ export const trackCheckoutStep = createServerFn({
       ),
       pathname: clean(data.pathname, 200),
       user_agent: userAgent,
+      utm_source: clean(data.utm.utm_source, 250),
+      utm_medium: clean(data.utm.utm_medium, 250),
+      utm_campaign: clean(
+        data.utm.utm_campaign,
+        250,
+      ),
+      utm_content: clean(data.utm.utm_content, 250),
+      utm_term: clean(data.utm.utm_term, 250),
     };
-
-    for (const key of UTM_KEYS) {
-      row[key] = clean(data.utm[key], 250);
-    }
 
     try {
       const { supabaseAdmin } = await import(
@@ -117,13 +121,7 @@ export const trackCheckoutStep = createServerFn({
 
       await supabaseAdmin
         .from("checkout_events")
-        .insert(
-          row as unknown as Parameters<
-            ReturnType<
-              typeof supabaseAdmin.from<"checkout_events">
-            >["insert"]
-          >[0],
-        );
+        .insert(row);
     } catch {
       /*
        * Analytics must never surface an error to the
