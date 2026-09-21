@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 import {
@@ -10,6 +11,47 @@ import {
 
 const STRIPE_API = "https://api.stripe.com/v1";
 const CURRENCY = "gbp";
+
+/**
+ * Utmify only accepts ISO 3166-1 alpha-2 country
+ * codes. The checkout form stores a human readable
+ * country, so normalise it here. This store ships
+ * to the United Kingdom only, hence the fallback.
+ */
+const COUNTRY_CODES: Record<string, string> = {
+  "united kingdom": "GB",
+  "united kingdom (uk)": "GB",
+  uk: "GB",
+  "great britain": "GB",
+  england: "GB",
+  scotland: "GB",
+  wales: "GB",
+  "northern ireland": "GB",
+  gb: "GB",
+};
+
+function toCountryCode(
+  value: string,
+): string {
+  const key = value
+    .trim()
+    .toLowerCase();
+
+  const mapped =
+    COUNTRY_CODES[key];
+
+  if (mapped) {
+    return mapped;
+  }
+
+  const upper = value
+    .trim()
+    .toUpperCase();
+
+  return /^[A-Z]{2}$/.test(upper)
+    ? upper
+    : "GB";
+}
 
 /** Campaign parameters allowed on Stripe metadata. */
 const ATTRIBUTION_METADATA_KEYS = [
