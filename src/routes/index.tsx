@@ -412,27 +412,37 @@ function ProductPage() {
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                to="/checkout"
-                search={{ pack: bundle.id }}
-                onClick={() =>
-                  tiktokTrack("AddToCart", {
-                    value: parseAmount(bundle.price),
-                    contents: [
-                      {
-                        content_id: bundle.id,
-                        content_name: bundle.productName ?? bundle.title,
-                        content_type: "product",
-                        quantity: bundle.quantity ?? 1,
-                        price: parseAmount(bundle.price),
-                      },
-                    ],
-                  })
-                }
+              {/*
+                Plain document navigation: in-app
+                browsers (Facebook/Instagram/TikTok) and
+                bad networks can break client-side route
+                chunks, which made the click look dead.
+                Tracking can never block the navigation.
+              */}
+              <a
+                href={checkoutHref}
+                onClick={() => {
+                  try {
+                    tiktokTrack("AddToCart", {
+                      value: parseAmount(bundle.price),
+                      contents: [
+                        {
+                          content_id: bundle.id,
+                          content_name: bundle.productName ?? bundle.title,
+                          content_type: "product",
+                          quantity: bundle.quantity ?? 1,
+                          price: parseAmount(bundle.price),
+                        },
+                      ],
+                    });
+                  } catch {
+                    /* analytics must never block checkout */
+                  }
+                }}
                 className="mx-auto flex h-14 w-full max-w-[345px] items-center justify-center rounded-full bg-brand px-8 text-center text-[19px] font-medium text-brand-foreground transition-opacity hover:opacity-90"
               >
                 Buy Now
-              </Link>
+              </a>
             </div>
 
 
