@@ -425,10 +425,13 @@ function ProductPage() {
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               {/*
-                Plain document navigation: in-app
-                browsers (Facebook/Instagram/TikTok) and
-                bad networks can break client-side route
-                chunks, which made the click look dead.
+                Real anchor with a hard fallback: in-app
+                browsers (Facebook/Instagram/TikTok), bad
+                networks or third-party scripts can swallow
+                the click or fail to load the route chunk,
+                which made Buy Now look dead. If the page
+                has not moved shortly after the click, we
+                force a plain document navigation.
                 Tracking can never block the navigation.
               */}
               <a
@@ -450,6 +453,14 @@ function ProductPage() {
                   } catch {
                     /* analytics must never block checkout */
                   }
+
+                  const target = buildCheckoutHref(bundle.id);
+
+                  window.setTimeout(() => {
+                    if (!window.location.pathname.startsWith("/checkout")) {
+                      window.location.assign(target);
+                    }
+                  }, 1200);
                 }}
                 className="mx-auto flex h-14 w-full max-w-[345px] items-center justify-center rounded-full bg-brand px-8 text-center text-[19px] font-medium text-brand-foreground transition-opacity hover:opacity-90"
               >
