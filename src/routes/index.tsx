@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { captureAttribution } from "@/lib/attribution";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { buildCheckoutHref } from "@/lib/checkout-url";
+import { createFileRoute } from "@tanstack/react-router";
 import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-react";
 import { Marquee } from "@/components/site/Marquee";
 import { AccordionItem } from "@/components/site/Accordion";
@@ -210,14 +211,25 @@ function ProductPage() {
   const [active, setActive] = useState(0);
   const [selected, setSelected] = useState("1");
 
+  /* True after hydration, so the CTA can enrich its URL. */
+  const [hydrated, setHydrated] = useState(false);
+
   /* Keeps the campaign parameters for the session. */
   useEffect(() => {
     captureAttribution();
+    setHydrated(true);
   }, []);
-  
-  
 
   const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0]!;
+
+  /*
+   * The CTA is a real link: it works before hydration
+   * and carries the campaign parameters once the client
+   * has read them from the URL/session.
+   */
+  const checkoutHref = hydrated
+    ? buildCheckoutHref(bundle.id)
+    : `/checkout?pack=${encodeURIComponent(bundle.id)}`;
 
   return (
     <div className="min-h-screen bg-background font-sans text-ink">
@@ -412,27 +424,48 @@ function ProductPage() {
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                to="/checkout"
-                search={{ pack: bundle.id }}
-                onClick={() =>
-                  tiktokTrack("AddToCart", {
-                    value: parseAmount(bundle.price),
-                    contents: [
-                      {
-                        content_id: bundle.id,
-                        content_name: bundle.productName ?? bundle.title,
-                        content_type: "product",
-                        quantity: bundle.quantity ?? 1,
-                        price: parseAmount(bundle.price),
-                      },
-                    ],
-                  })
-                }
+              {/*
+                Real anchor with a hard fallback: in-app
+                browsers (Facebook/Instagram/TikTok), bad
+                networks or third-party scripts can swallow
+                the click or fail to load the route chunk,
+                which made Buy Now look dead. If the page
+                has not moved shortly after the click, we
+                force a plain document navigation.
+                Tracking can never block the navigation.
+              */}
+              <a
+                href={checkoutHref}
+                onClick={() => {
+                  try {
+                    tiktokTrack("AddToCart", {
+                      value: parseAmount(bundle.price),
+                      contents: [
+                        {
+                          content_id: bundle.id,
+                          content_name: bundle.productName ?? bundle.title,
+                          content_type: "product",
+                          quantity: bundle.quantity ?? 1,
+                          price: parseAmount(bundle.price),
+                        },
+                      ],
+                    });
+                  } catch {
+                    /* analytics must never block checkout */
+                  }
+
+                  const target = buildCheckoutHref(bundle.id);
+
+                  window.setTimeout(() => {
+                    if (!window.location.pathname.startsWith("/checkout")) {
+                      window.location.assign(target);
+                    }
+                  }, 1200);
+                }}
                 className="mx-auto flex h-14 w-full max-w-[345px] items-center justify-center rounded-full bg-brand px-8 text-center text-[19px] font-medium text-brand-foreground transition-opacity hover:opacity-90"
               >
                 Buy Now
-              </Link>
+              </a>
             </div>
 
 

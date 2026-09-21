@@ -168,6 +168,7 @@ export const createStripePaymentIntent = createServerFn({
 
             body:
               form.toString(),
+            signal: AbortSignal.timeout(20000),
           },
         );
 
@@ -437,6 +438,17 @@ export const updateStripePaymentIntent =
        * - PaymentIntent is not already succeeded
        * - PaymentIntent is not canceled
        */
+      /*
+       * The PaymentIntent is created once per checkout
+       * visit and reused while the buyer edits the
+       * shipping method, so the amount can legitimately
+       * be out of date here. The server is still the
+       * only authority: it recalculates the amount and
+       * writes the expected value back to Stripe.
+       */
+      let amountNeedsUpdate =
+        false;
+
       try {
         const verifyResponse =
           await fetch(
@@ -450,6 +462,8 @@ export const updateStripePaymentIntent =
                 Authorization:
                   `Bearer ${secretKey}`,
               },
+
+              signal: AbortSignal.timeout(20000),
             },
           );
 
@@ -554,23 +568,8 @@ export const updateStripePaymentIntent =
           verifiedIntent.amount !==
           expectedAmount
         ) {
-          console.error(
-            "Stripe amount mismatch before prepare-order",
-            {
-              paymentIntentId,
-
-              stripeAmount:
-                verifiedIntent.amount,
-
-              expectedAmount,
-            },
-          );
-
-          return {
-            ok: false as const,
-            error:
-              "Payment amount mismatch.",
-          };
+          amountNeedsUpdate =
+            true;
         }
 
         /*
@@ -680,6 +679,8 @@ export const updateStripePaymentIntent =
                   city:
                     data.city,
                 }),
+
+              signal: AbortSignal.timeout(20000),
             },
           );
 
@@ -748,6 +749,17 @@ export const updateStripePaymentIntent =
         "receipt_email",
         data.email,
       );
+
+      /*
+       * Server-calculated amount (pack + shipping).
+       * Never a value supplied by the browser.
+       */
+      if (amountNeedsUpdate) {
+        form.set(
+          "amount",
+          String(expectedAmount),
+        );
+      }
 
       form.set(
         "metadata[checkout_order_id]",
@@ -825,6 +837,7 @@ export const updateStripePaymentIntent =
                 "Content-Type":
                   "application/x-www-form-urlencoded",
               },
+              signal: AbortSignal.timeout(20000),
 
               body:
                 form.toString(),
@@ -894,6 +907,103 @@ export const updateStripePaymentIntent =
 
           error:
             "Could not prepare the order.",
+        };
+      }
+    });
+
+/**
+ * Reads the status of a PaymentIntent from Stripe.
+ *
+ * Used when the buyer returns from a 3-D Secure
+ * redirect: only Stripe can tell us whether the
+ * authentication actually succeeded.
+ */
+const statusSchema = z.object({
+  clientSecret: z.string().min(1),
+});
+
+export const getStripePaymentIntentStatus =
+  createServerFn({ method: "POST" })
+    .inputValidator((data: unknown) =>
+      statusSchema.parse(data),
+    )
+    .handler(async ({ data }) => {
+      const secretKey =
+        process.env["STRIPE_SECRET_KEY"];
+
+      if (!secretKey) {
+        return {
+          ok: false as const,
+          error: "Stripe is not configured.",
+        };
+      }
+
+      const marker = "_secret_";
+      const position =
+        data.clientSecret.indexOf(marker);
+
+      if (position <= 0) {
+        return {
+          ok: false as const,
+          error: "Invalid PaymentIntent.",
+        };
+      }
+
+      const paymentIntentId =
+        data.clientSecret.slice(0, position);
+
+      if (!paymentIntentId.startsWith("pi_")) {
+        return {
+          ok: false as const,
+          error: "Invalid PaymentIntent.",
+        };
+      }
+
+      try {
+        const res = await fetch(
+          `${STRIPE_API}/payment_intents/${encodeURIComponent(
+            paymentIntentId,
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+            },
+            signal: AbortSignal.timeout(15000),
+          },
+        );
+
+        const intent = (await res.json()) as {
+          client_secret?: string | null;
+          status?: string;
+          amount?: number;
+        };
+
+        if (
+          !res.ok ||
+          !intent.client_secret ||
+          intent.client_secret !== data.clientSecret
+        ) {
+          return {
+            ok: false as const,
+            error: "Could not verify the payment.",
+          };
+        }
+
+        return {
+          ok: true as const,
+          status: intent.status ?? "unknown",
+          amount: intent.amount ?? 0,
+        };
+      } catch (error) {
+        console.error(
+          "PaymentIntent status unavailable",
+          error,
+        );
+
+        return {
+          ok: false as const,
+          error: "Could not verify the payment.",
         };
       }
     });
