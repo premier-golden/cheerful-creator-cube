@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { captureAttribution } from "@/lib/attribution";
+import { buildCheckoutHref } from "@/lib/checkout-url";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-react";
 import { Marquee } from "@/components/site/Marquee";
@@ -210,14 +211,25 @@ function ProductPage() {
   const [active, setActive] = useState(0);
   const [selected, setSelected] = useState("1");
 
+  /* True after hydration, so the CTA can enrich its URL. */
+  const [hydrated, setHydrated] = useState(false);
+
   /* Keeps the campaign parameters for the session. */
   useEffect(() => {
     captureAttribution();
+    setHydrated(true);
   }, []);
-  
-  
 
   const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0]!;
+
+  /*
+   * The CTA is a real link: it works before hydration
+   * and carries the campaign parameters once the client
+   * has read them from the URL/session.
+   */
+  const checkoutHref = hydrated
+    ? buildCheckoutHref(bundle.id)
+    : `/checkout?pack=${encodeURIComponent(bundle.id)}`;
 
   return (
     <div className="min-h-screen bg-background font-sans text-ink">
