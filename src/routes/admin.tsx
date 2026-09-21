@@ -262,6 +262,131 @@ function AdminPage() {
       </section>
 
       <section className="mb-6 rounded-xl border border-border p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Checkout funnel
+          </h2>
+          <select
+            value={campaign}
+            onChange={(event) => setCampaign(event.target.value)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          >
+            <option value="">All campaigns</option>
+            {campaigns.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Checkout sessions</p>
+            <p className="text-xl font-semibold">{funnelView.base}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Pay clicked</p>
+            <p className="text-xl font-semibold">{funnelView.payClicked}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Payment attempts</p>
+            <p className="text-xl font-semibold">{funnelView.attempts}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Paid sales</p>
+            <p className="text-xl font-semibold">{funnelView.paid}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Checkout → Sale</p>
+            <p className="text-xl font-semibold">
+              {pct(funnelView.paid, funnelView.base)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Pay → Sale</p>
+            <p className="text-xl font-semibold">
+              {pct(funnelView.paid, funnelView.payClicked)}
+            </p>
+          </div>
+        </div>
+
+        {funnelView.base === 0 && funnelView.steps.every((s) => s.sessions === 0) ? (
+          <p className="text-sm text-muted-foreground">
+            No checkout events recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[620px] text-left text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2">Step</th>
+                  <th className="p-2">Sessions</th>
+                  <th className="p-2">% of checkout</th>
+                  <th className="p-2">Step conversion</th>
+                  <th className="p-2">Drop-off</th>
+                </tr>
+              </thead>
+              <tbody>
+                {funnelView.steps.map((step) => (
+                  <tr key={step.event} className="border-t border-border">
+                    <td className="p-2">{step.event}</td>
+                    <td className="p-2 font-semibold">{step.sessions}</td>
+                    <td className="p-2">
+                      {step.share === null ? "—" : `${step.share.toFixed(1)}%`}
+                    </td>
+                    <td className="p-2">
+                      {step.stepConversion === null
+                        ? "—"
+                        : `${step.stepConversion.toFixed(1)}%`}
+                    </td>
+                    <td className="p-2">
+                      {step.dropOff === null
+                        ? "—"
+                        : `${step.dropOff.toFixed(1)}%`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          Checkout errors
+        </h2>
+        {funnelErrors.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No checkout errors recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2">Error</th>
+                  <th className="p-2">Sessions</th>
+                  <th className="p-2">Occurrences</th>
+                </tr>
+              </thead>
+              <tbody>
+                {funnelErrors.map((row) => (
+                  <tr key={row.errorCode} className="border-t border-border">
+                    <td className="p-2">{row.errorCode}</td>
+                    <td className="p-2 font-semibold">{row.sessions}</td>
+                    <td className="p-2">{row.occurrences}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+
+      <section className="mb-6 rounded-xl border border-border p-4">
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">
           IC and sales by campaign
         </h2>
