@@ -691,6 +691,126 @@ function CheckoutPage() {
 
   /*
    * ----------------------------------------------
+   * DELIVERY FUNNEL (analytics only)
+   * ----------------------------------------------
+   *
+   * Fire-and-forget funnel steps for the delivery
+   * section. No typed value is ever sent: only the
+   * fact that a step happened. Nothing here can
+   * block the form, the shipping rules or Stripe.
+   */
+  const addressStartedRef =
+    useRef(false);
+
+  const addressCompletedRef =
+    useRef(false);
+
+  const shippingViewedRef =
+    useRef(false);
+
+  const trackAddressProgress =
+    useCallback(() => {
+      try {
+        if (
+          addressCompletedRef.current
+        ) {
+          return;
+        }
+
+        /*
+         * Reuses the real checkout validation in
+         * silent mode (no field marks, no error
+         * events) and without the shipping step,
+         * so it mirrors exactly the rules that
+         * unlock the delivery methods.
+         */
+        const problem =
+          validateCheckout({
+            silent: true,
+            skipShipping: true,
+          });
+
+        if (problem === null) {
+          addressCompletedRef.current =
+            true;
+
+          trackCheckout(
+            "address_completed",
+            { pack: bundle.id },
+          );
+        }
+      } catch {
+        /* analytics must never throw */
+      }
+    }, [validateCheckout, bundle.id]);
+
+  function handleFormInput(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    try {
+      const target =
+        event.target as
+          | HTMLInputElement
+          | null;
+
+      const name =
+        target?.name ?? "";
+
+      if (
+        !addressStartedRef.current &&
+        DELIVERY_FIELDS.has(name) &&
+        (target?.value ?? "").trim()
+          .length > 0
+      ) {
+        addressStartedRef.current =
+          true;
+
+        trackCheckout(
+          "address_started",
+          { pack: bundle.id },
+        );
+      }
+
+      trackAddressProgress();
+    } catch {
+      /* analytics must never throw */
+    }
+  }
+
+  /*
+   * Address auto-fill updates state without firing
+   * input events, so completion is re-checked here.
+   */
+  useEffect(() => {
+    trackAddressProgress();
+  }, [
+    street,
+    city,
+    postcode,
+    email,
+    trackAddressProgress,
+  ]);
+
+  /* Real shipping options became available. */
+  useEffect(() => {
+    if (
+      !postcodeValid ||
+      shippingViewedRef.current
+    ) {
+      return;
+    }
+
+    shippingViewedRef.current =
+      true;
+
+    trackCheckout(
+      "shipping_options_viewed",
+      { pack: bundle.id },
+    );
+  }, [postcodeValid, bundle.id]);
+
+  /*
+   * ----------------------------------------------
    * 3-D SECURE RETURN
    * ----------------------------------------------
    *
@@ -869,6 +989,9 @@ function CheckoutPage() {
             ref={formRef}
             onSubmit={
               handleSubmit
+            }
+            onInput={
+              handleFormInput
             }
           >
             {/* Contact */}
@@ -1062,11 +1185,26 @@ function CheckoutPage() {
                             checked={
                               selected
                             }
-                            onChange={() =>
+                            onChange={() => {
+                              if (
+                                shippingId !==
+                                method.id
+                              ) {
+                                /* Analytics only. */
+                                trackCheckout(
+                                  "shipping_selected",
+                                  {
+                                    pack: bundle.id,
+                                    shipping:
+                                      method.id,
+                                  },
+                                );
+                              }
+
                               setShippingId(
                                 method.id,
-                              )
-                            }
+                              );
+                            }}
                             className="size-4 accent-[var(--co-accent)]"
                           />
 
