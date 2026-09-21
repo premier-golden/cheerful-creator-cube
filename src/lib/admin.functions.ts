@@ -84,7 +84,12 @@ export type SaleAttributionsResult =
       ok: true;
       rows: Array<SaleAttributionRow>;
       initiations: Array<CheckoutInitiationRow>;
+      funnel: Array<FunnelStepRow>;
+      funnelErrors: Array<FunnelErrorRow>;
+      campaigns: Array<string>;
     };
+
+const NO_CAMPAIGN = "(no campaign)";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
