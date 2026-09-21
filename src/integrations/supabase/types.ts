@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      checkout_initiations: {
+        Row: {
+          created_at: string
+          fbclid: string | null
+          gclid: string | null
+          id: string
+          pack: string | null
+          sck: string | null
+          src: string | null
+          ttclid: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          created_at?: string
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          pack?: string | null
+          sck?: string | null
+          src?: string | null
+          ttclid?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          created_at?: string
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          pack?: string | null
+          sck?: string | null
+          src?: string | null
+          ttclid?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       checkout_orders: {
         Row: {
           apartment: string | null
