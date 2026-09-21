@@ -756,6 +756,13 @@ function CheckoutPage() {
 
         setStatus("idle");
 
+        trackCheckout("payment_failed", {
+          pack: bundle.id,
+          errorCode: result.ok
+            ? "authentication_not_completed"
+            : "intent_status_unavailable",
+        });
+
         setError(
           result.ok
             ? "The authentication was not completed, so the payment did not go through. Please try again."
