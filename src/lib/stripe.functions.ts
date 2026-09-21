@@ -904,3 +904,100 @@ export const updateStripePaymentIntent =
         };
       }
     });
+
+/**
+ * Reads the status of a PaymentIntent from Stripe.
+ *
+ * Used when the buyer returns from a 3-D Secure
+ * redirect: only Stripe can tell us whether the
+ * authentication actually succeeded.
+ */
+const statusSchema = z.object({
+  clientSecret: z.string().min(1),
+});
+
+export const getStripePaymentIntentStatus =
+  createServerFn({ method: "POST" })
+    .inputValidator((data: unknown) =>
+      statusSchema.parse(data),
+    )
+    .handler(async ({ data }) => {
+      const secretKey =
+        process.env["STRIPE_SECRET_KEY"];
+
+      if (!secretKey) {
+        return {
+          ok: false as const,
+          error: "Stripe is not configured.",
+        };
+      }
+
+      const marker = "_secret_";
+      const position =
+        data.clientSecret.indexOf(marker);
+
+      if (position <= 0) {
+        return {
+          ok: false as const,
+          error: "Invalid PaymentIntent.",
+        };
+      }
+
+      const paymentIntentId =
+        data.clientSecret.slice(0, position);
+
+      if (!paymentIntentId.startsWith("pi_")) {
+        return {
+          ok: false as const,
+          error: "Invalid PaymentIntent.",
+        };
+      }
+
+      try {
+        const res = await fetch(
+          `${STRIPE_API}/payment_intents/${encodeURIComponent(
+            paymentIntentId,
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+            },
+            signal: AbortSignal.timeout(15000),
+          },
+        );
+
+        const intent = (await res.json()) as {
+          client_secret?: string | null;
+          status?: string;
+          amount?: number;
+        };
+
+        if (
+          !res.ok ||
+          !intent.client_secret ||
+          intent.client_secret !== data.clientSecret
+        ) {
+          return {
+            ok: false as const,
+            error: "Could not verify the payment.",
+          };
+        }
+
+        return {
+          ok: true as const,
+          status: intent.status ?? "unknown",
+          amount: intent.amount ?? 0,
+        };
+      } catch (error) {
+        console.error(
+          "PaymentIntent status unavailable",
+          error,
+        );
+
+        return {
+          ok: false as const,
+          error: "Could not verify the payment.",
+        };
+      }
+    });
