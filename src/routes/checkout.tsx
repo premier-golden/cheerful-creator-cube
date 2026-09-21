@@ -1049,6 +1049,25 @@ function CheckoutPage() {
               </p>
 
               {status ===
+              "processing" ? (
+                <div className="rounded-md border border-co-border bg-co-surface p-5">
+                  <p className="flex items-center gap-2 text-sm font-medium text-co-fg">
+                    <Loader2
+                      className="size-5 animate-spin text-co-accent"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                    Payment being processed
+                  </p>
+
+                  <p className="mt-2 text-sm text-co-muted">
+                    Your bank is still processing this
+                    payment. Please keep this page open —
+                    we'll email you as soon as it is
+                    confirmed.
+                  </p>
+                </div>
+              ) : status ===
               "done" ? (
                 <div className="rounded-md border border-co-border bg-co-surface p-5">
                   <p className="flex items-center gap-2 text-sm font-medium text-co-fg">
@@ -1151,8 +1170,15 @@ function CheckoutPage() {
                         </div>
                       </section>
                     }
+                    formRef={formRef}
+                    validate={
+                      validateCheckout
+                    }
                     onPaid={
                       handlePaid
+                    }
+                    onProcessing={
+                      handleProcessing
                     }
                   />
 
