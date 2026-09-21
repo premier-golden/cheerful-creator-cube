@@ -29,6 +29,11 @@ import {
   updateStripePaymentIntent,
 } from "@/lib/stripe.functions";
 import { getAttribution } from "@/lib/attribution";
+import {
+  intentIdFromSecret,
+  stripeErrorCode,
+  trackCheckout,
+} from "@/lib/checkout-tracking";
 import { Button } from "@/components/ui/button";
 
 /** This checkout sells to the United Kingdom only. */
