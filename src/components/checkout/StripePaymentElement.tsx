@@ -136,6 +136,27 @@ function PayForm({
     ? email.trim()
     : null;
 
+  const paymentIntentId =
+    intentIdFromSecret(clientSecret);
+
+  /*
+   * Funnel tracking helper. Fire-and-forget: it never
+   * awaits, never throws and never touches the payment.
+   */
+  const track = (
+    event: Parameters<typeof trackCheckout>[0],
+    details: {
+      errorCode?: string;
+      errorMessage?: string;
+    } = {},
+  ) =>
+    trackCheckout(event, {
+      pack,
+      shipping,
+      paymentIntentId,
+      ...details,
+    });
+
   /*
    * If Stripe's iframe is blocked (ad blocker,
    * in-app browser), the buyer must see a clear
@@ -148,6 +169,12 @@ function PayForm({
       setElementError(
         "The secure payment form could not be loaded. Check your connection or disable any blocker, then try again.",
       );
+
+      trackCheckout("payment_element_failed", {
+        pack,
+        shipping,
+        errorCode: "payment_element_load_timeout",
+      });
     }, ELEMENT_READY_TIMEOUT_MS);
 
     return () => window.clearTimeout(timer);
@@ -156,10 +183,16 @@ function PayForm({
   async function handlePay() {
     if (submitting) return;
 
+    track("pay_clicked");
+
     if (!stripe || !elements) {
       setError(
         "The payment form is still loading. Please wait a moment and try again.",
       );
+
+      track("payment_element_failed", {
+        errorCode: "stripe_not_ready",
+      });
       return;
     }
 
@@ -169,6 +202,7 @@ function PayForm({
      * Field-level validation lives in the checkout
      * page: it highlights, focuses and scrolls to the
      * first invalid field and returns the message.
+     * The checkout page records the failure code.
      */
     const validationError = validate?.();
 
@@ -183,6 +217,10 @@ function PayForm({
       setError(
         "We couldn't read your delivery details. Please refresh and try again.",
       );
+
+      track("form_validation_failed", {
+        errorCode: "form_unavailable",
+      });
       return;
     }
 
@@ -190,8 +228,14 @@ function PayForm({
       setError(
         "Please select a delivery method before paying.",
       );
+
+      track("form_validation_failed", {
+        errorCode: "shipping_missing",
+      });
       return;
     }
+
+    track("form_validation_passed");
 
     const formData = new FormData(form);
 
@@ -220,6 +264,8 @@ function PayForm({
        * server re-syncs the amount for the currently
        * selected shipping method.
        */
+      track("prepare_order_started");
+
       const updated = await withTimeout(
         updateIntent({
           data: {
@@ -240,9 +286,18 @@ function PayForm({
             "We couldn't prepare your order. Please try again.",
         );
 
+        track("prepare_order_failed", {
+          errorCode: "prepare_order_rejected",
+          ...(updated.error
+            ? { errorMessage: updated.error }
+            : {}),
+        });
+
         setSubmitting(false);
         return;
       }
+
+      track("prepare_order_succeeded");
 
       /*
        * Pick up the server-side amount without
@@ -263,9 +318,24 @@ function PayForm({
             "Please check your payment information.",
         );
 
+        track("elements_submit_failed", {
+          errorCode: stripeErrorCode(
+            submitResult.error,
+          ),
+          ...(submitResult.error.message
+            ? {
+                errorMessage:
+                  submitResult.error.message,
+              }
+            : {}),
+        });
+
         setSubmitting(false);
         return;
       }
+
+      track("elements_submit_succeeded");
+      track("confirm_payment_started");
 
       const confirm =
         stripe.confirmPayment as unknown as (
