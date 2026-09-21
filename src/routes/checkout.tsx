@@ -846,6 +846,26 @@ function CheckoutPage() {
   }, [postcodeValid, bundle.id]);
 
   /*
+   * Default shipping: as soon as the options become
+   * available, Standard is pre-selected through the
+   * exact same state the manual selection uses. The
+   * buyer can still switch to Express at any time.
+   */
+  useEffect(() => {
+    if (!postcodeValid) return;
+
+    if (shippingId === null) {
+      setShippingId("standard");
+
+      /* Analytics only: fires once per activation. */
+      trackCheckout("shipping_selected", {
+        pack: bundle.id,
+        shipping: "standard",
+      });
+    }
+  }, [postcodeValid, shippingId, bundle.id]);
+
+  /*
    * ----------------------------------------------
    * 3-D SECURE RETURN
    * ----------------------------------------------
