@@ -164,7 +164,10 @@ function CheckoutPage() {
     status,
     setStatus,
   ] = useState<
-    "idle" | "loading" | "done"
+    | "idle"
+    | "loading"
+    | "processing"
+    | "done"
   >("idle");
 
   const [
@@ -341,26 +344,36 @@ function CheckoutPage() {
    * Stripe's signed webhook handles
    * the actual paid-order workflow.
    */
+  const paidRef = useRef(false);
+
   const handlePaid =
     useCallback(
       async () => {
-        const form =
-          formRef.current;
-
-        if (!form) {
+        /*
+         * CompletePayment must fire exactly once,
+         * even if Stripe reports success twice
+         * (e.g. after a 3-D Secure return).
+         */
+        if (paidRef.current) {
+          setStatus("done");
           return;
         }
 
+        paidRef.current = true;
+
+        const form =
+          formRef.current;
+
         const data =
-          new FormData(
-            form,
-          );
+          form
+            ? new FormData(form)
+            : null;
 
         const value = (
           key: string,
         ) =>
           String(
-            data.get(key) ??
+            data?.get(key) ??
               "",
           ).trim();
 
@@ -425,6 +438,277 @@ function CheckoutPage() {
         tiktokContents,
       ],
     );
+
+  /**
+   * A payment that is still `processing` is NOT
+   * approved: no conversion event is fired here.
+   */
+  const handleProcessing =
+    useCallback(() => {
+      setError(null);
+      setStatus("processing");
+    }, []);
+
+  /*
+   * ----------------------------------------------
+   * FIELD-LEVEL VALIDATION
+   * ----------------------------------------------
+   *
+   * Returns the message for the first invalid field
+   * and focuses/scrolls to it, so tapping Pay never
+   * looks like nothing happened.
+   */
+  function markInvalid(
+    element: HTMLElement | null,
+  ) {
+    if (!element) return;
+
+    element.setAttribute(
+      "aria-invalid",
+      "true",
+    );
+
+    element.classList.add(
+      "border-red-500",
+      "ring-1",
+      "ring-red-500",
+    );
+
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+
+    if (
+      element instanceof
+        HTMLInputElement ||
+      element instanceof
+        HTMLSelectElement
+    ) {
+      element.focus({
+        preventScroll: true,
+      });
+    }
+  }
+
+  function clearInvalidMarks(
+    form: HTMLFormElement,
+  ) {
+    form
+      .querySelectorAll(
+        "[aria-invalid='true']",
+      )
+      .forEach((node) => {
+        node.removeAttribute(
+          "aria-invalid",
+        );
+
+        node.classList.remove(
+          "border-red-500",
+          "ring-1",
+          "ring-red-500",
+        );
+      });
+  }
+
+  const validateCheckout =
+    useCallback((): string | null => {
+      const form = formRef.current;
+
+      if (!form) {
+        return "We couldn't read your details. Please refresh the page and try again.";
+      }
+
+      clearInvalidMarks(form);
+
+      const field = (
+        name: string,
+      ) =>
+        form.elements.namedItem(
+          name,
+        ) as
+          | HTMLInputElement
+          | HTMLSelectElement
+          | null;
+
+      const checks: {
+        name: string;
+        message: string;
+        invalidMessage?: string;
+        isValid?: (
+          value: string,
+        ) => boolean;
+      }[] = [
+        {
+          name: "email",
+          message:
+            "Please enter your email address.",
+          invalidMessage:
+            "This email address looks incorrect. Please check it and try again.",
+          isValid: (value) =>
+            /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(
+              value,
+            ),
+        },
+        {
+          name: "firstName",
+          message:
+            "Please enter your first name.",
+        },
+        {
+          name: "lastName",
+          message:
+            "Please enter your last name.",
+        },
+        {
+          name: "street",
+          message:
+            "Please enter your delivery address.",
+        },
+        {
+          name: "city",
+          message:
+            "Please enter your city.",
+        },
+        {
+          name: "postalCode",
+          message:
+            "Please enter your postcode.",
+          invalidMessage:
+            "Please enter a valid UK postcode, for example SW1A 1AA.",
+          isValid: (value) =>
+            isValidUkPostcode(value),
+        },
+      ];
+
+      for (const check of checks) {
+        const element = field(
+          check.name,
+        );
+
+        const raw =
+          element?.value?.trim() ??
+          "";
+
+        if (!raw) {
+          markInvalid(element);
+          return check.message;
+        }
+
+        if (
+          check.isValid &&
+          !check.isValid(raw)
+        ) {
+          markInvalid(element);
+
+          return (
+            check.invalidMessage ??
+            check.message
+          );
+        }
+      }
+
+      if (!shipping) {
+        const firstShipping =
+          form.querySelector(
+            "input[name='shippingMethod']",
+          ) as HTMLInputElement | null;
+
+        if (firstShipping) {
+          markInvalid(firstShipping);
+        }
+
+        return "Please choose a delivery method.";
+      }
+
+      return null;
+    }, [shipping]);
+
+  /*
+   * ----------------------------------------------
+   * 3-D SECURE RETURN
+   * ----------------------------------------------
+   *
+   * Banks that authenticate through a redirect send
+   * the buyer back here with the client secret in the
+   * URL. Only Stripe can confirm the real status.
+   */
+  const readIntentStatus =
+    useServerFn(
+      getStripePaymentIntentStatus,
+    );
+
+  const returnHandledRef =
+    useRef(false);
+
+  useEffect(() => {
+    if (returnHandledRef.current) {
+      return;
+    }
+
+    const params =
+      new URLSearchParams(
+        window.location.search,
+      );
+
+    const returnedSecret =
+      params.get(
+        "payment_intent_client_secret",
+      );
+
+    if (!returnedSecret) {
+      return;
+    }
+
+    returnHandledRef.current = true;
+    setStatus("loading");
+
+    void (async () => {
+      try {
+        const result =
+          await readIntentStatus({
+            data: {
+              clientSecret:
+                returnedSecret,
+            },
+          });
+
+        if (
+          result.ok &&
+          result.status === "succeeded"
+        ) {
+          await handlePaid();
+          return;
+        }
+
+        if (
+          result.ok &&
+          result.status === "processing"
+        ) {
+          handleProcessing();
+          return;
+        }
+
+        setStatus("idle");
+
+        setError(
+          result.ok
+            ? "The authentication was not completed, so the payment did not go through. Please try again."
+            : result.error,
+        );
+      } catch (err) {
+        console.error(err);
+
+        setStatus("idle");
+
+        setError(
+          "We couldn't confirm your payment status. Please try again.",
+        );
+      }
+    })();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleSubmit(
     event: FormEvent<HTMLFormElement>,
