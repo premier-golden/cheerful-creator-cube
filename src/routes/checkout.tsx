@@ -21,6 +21,9 @@ import {
   tiktokTrack,
 } from "@/lib/tiktok";
 
+import { getAttribution } from "@/lib/attribution";
+import { recordCheckoutInitiation } from "@/lib/ic.functions";
+
 import {
   getBundle,
   DEFAULT_BUNDLE_ID,
@@ -267,6 +270,18 @@ function CheckoutPage() {
           tiktokContents,
       },
     );
+
+    /*
+     * Server-side IC record with the
+     * campaign attribution. Fire-and-forget:
+     * it must never block the checkout.
+     */
+    void recordCheckoutInitiation({
+      data: {
+        pack: bundle.id,
+        attribution: getAttribution(),
+      },
+    }).catch(() => {});
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pack]);

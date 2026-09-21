@@ -36,9 +36,26 @@ export type SaleAttributionRow = {
   paidAt: string;
 };
 
+export type CheckoutInitiationRow = {
+  id: string;
+  pack: string | null;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
+  src: string | null;
+  sck: string | null;
+  createdAt: string;
+};
+
 export type SaleAttributionsResult =
   | { ok: false }
-  | { ok: true; rows: Array<SaleAttributionRow> };
+  | {
+      ok: true;
+      rows: Array<SaleAttributionRow>;
+      initiations: Array<CheckoutInitiationRow>;
+    };
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -72,8 +89,30 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
+    const { data: icRows, error: icError } = await supabaseAdmin
+      .from("checkout_initiations")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (icError) {
+      throw new Error(icError.message);
+    }
+
     return {
       ok: true,
+      initiations: (icRows ?? []).map((row) => ({
+        id: row.id,
+        pack: row.pack,
+        utmSource: row.utm_source,
+        utmMedium: row.utm_medium,
+        utmCampaign: row.utm_campaign,
+        utmContent: row.utm_content,
+        utmTerm: row.utm_term,
+        src: row.src,
+        sck: row.sck,
+        createdAt: row.created_at,
+      })),
       rows: (rows ?? []).map((row) => ({
         id: row.id,
         stripePaymentIntentId: row.stripe_payment_intent_id,

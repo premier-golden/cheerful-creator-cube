@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   listSaleAttributions,
+  type CheckoutInitiationRow,
   type SaleAttributionRow,
 } from "@/lib/admin.functions";
 
@@ -52,6 +53,9 @@ function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [rows, setRows] = useState<Array<SaleAttributionRow>>([]);
+  const [initiations, setInitiations] = useState<
+    Array<CheckoutInitiationRow>
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -80,6 +84,7 @@ function AdminPage() {
           return;
         }
         setRows(result.rows);
+        setInitiations(result.initiations);
         setError(null);
       } catch {
         if (!cancelled) setError("Could not load sales right now.");
@@ -111,6 +116,39 @@ function AdminPage() {
       bySource: [...bySource.entries()].sort((a, b) => b[1] - a[1]),
     };
   }, [rows]);
+
+  /*
+   * IC (checkout initiations) and sales grouped
+   * by campaign, so each campaign shows how many
+   * checkouts it started vs how many sales it closed.
+   */
+  const byCampaign = useMemo(() => {
+    type Entry = { ic: number; sales: number; revenue: number };
+    const map = new Map<string, Entry>();
+
+    const keyOf = (source: string | null, campaign: string | null) =>
+      `${source ?? "direct / unknown"} · ${campaign ?? "—"}`;
+
+    for (const ic of initiations) {
+      const key = keyOf(ic.utmSource ?? ic.src, ic.utmCampaign);
+      const entry = map.get(key) ?? { ic: 0, sales: 0, revenue: 0 };
+      entry.ic += 1;
+      map.set(key, entry);
+    }
+
+    for (const row of rows) {
+      if (!row.livemode) continue;
+      const key = keyOf(row.utmSource ?? row.src, row.utmCampaign);
+      const entry = map.get(key) ?? { ic: 0, sales: 0, revenue: 0 };
+      entry.sales += 1;
+      entry.revenue += row.amountCents;
+      map.set(key, entry);
+    }
+
+    return [...map.entries()].sort(
+      (a, b) => b[1].ic - a[1].ic || b[1].sales - a[1].sales,
+    );
+  }, [initiations, rows]);
 
   if (!authed) {
     return (
@@ -172,6 +210,48 @@ function AdminPage() {
             {money(totals.revenue, rows[0]?.currency ?? "gbp")}
           </p>
         </div>
+      </section>
+
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          IC and sales by campaign
+        </h2>
+        {byCampaign.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No checkout initiations recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-left text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2">Campaign</th>
+                  <th className="p-2">IC</th>
+                  <th className="p-2">Sales</th>
+                  <th className="p-2">IC → Sale</th>
+                  <th className="p-2">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byCampaign.map(([campaign, stats]) => (
+                  <tr key={campaign} className="border-t border-border">
+                    <td className="p-2">{campaign}</td>
+                    <td className="p-2 font-semibold">{stats.ic}</td>
+                    <td className="p-2 font-semibold">{stats.sales}</td>
+                    <td className="p-2">
+                      {stats.ic > 0
+                        ? `${((stats.sales / stats.ic) * 100).toFixed(1)}%`
+                        : "—"}
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {money(stats.revenue, rows[0]?.currency ?? "gbp")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {totals.bySource.length > 0 ? (

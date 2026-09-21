@@ -1,0 +1,1 @@
+CREATE POLICY "No public access to checkout initiations" ON public.checkout_initiations FOR SELECT TO authenticated USING (false);
