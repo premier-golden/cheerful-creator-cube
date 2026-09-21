@@ -60,6 +60,10 @@ function AdminPage() {
   >([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [funnel, setFunnel] = useState<Array<FunnelStepRow>>([]);
+  const [funnelErrors, setFunnelErrors] = useState<Array<FunnelErrorRow>>([]);
+  const [campaigns, setCampaigns] = useState<Array<string>>([]);
+  const [campaign, setCampaign] = useState("");
 
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
