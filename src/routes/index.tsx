@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { captureAttribution } from "@/lib/attribution";
 import { buildCheckoutHref } from "@/lib/checkout-url";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-react";
 import { Marquee } from "@/components/site/Marquee";
 import { AccordionItem } from "@/components/site/Accordion";
