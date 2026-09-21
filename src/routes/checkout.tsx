@@ -533,14 +533,21 @@ function CheckoutPage() {
   }
 
   const validateCheckout =
-    useCallback((): string | null => {
+    useCallback((options?: {
+      /** Analytics probe: no field marks, no events. */
+      silent?: boolean;
+      /** Skips the delivery-method requirement. */
+      skipShipping?: boolean;
+    }): string | null => {
       const form = formRef.current;
 
       if (!form) {
         return "We couldn't read your details. Please refresh the page and try again.";
       }
 
-      clearInvalidMarks(form);
+      if (!options?.silent) {
+        clearInvalidMarks(form);
+      }
 
       const field = (
         name: string,
