@@ -26,6 +26,7 @@ import {
   createStripePaymentIntent,
   updateStripePaymentIntent,
 } from "@/lib/stripe.functions";
+import { getAttribution } from "@/lib/attribution";
 import { Button } from "@/components/ui/button";
 
 /** This checkout sells to the United Kingdom only. */
@@ -222,6 +223,9 @@ function PayForm({
             shipping,
 
             ...orderData,
+
+            attribution:
+              getAttribution(),
           },
         });
 

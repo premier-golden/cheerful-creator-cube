@@ -11,6 +11,20 @@ import {
 const STRIPE_API = "https://api.stripe.com/v1";
 const CURRENCY = "gbp";
 
+/** Campaign parameters allowed on Stripe metadata. */
+const ATTRIBUTION_METADATA_KEYS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+  "src",
+  "sck",
+  "fbclid",
+  "ttclid",
+  "gclid",
+] as const;
+
 const PREPARE_ORDER_URL =
   "https://pqvkbiahjndyfkvoubxi.supabase.co/functions/v1/prepare-order";
 
@@ -206,6 +220,20 @@ const updateIntentSchema =
       z.string()
         .optional()
         .default(""),
+
+    /*
+     * Campaign attribution only.
+     * Used to report the sale server-side.
+     */
+    attribution:
+      z.record(
+        z.enum(
+          ATTRIBUTION_METADATA_KEYS,
+        ),
+        z.string().max(250),
+      )
+        .optional()
+        .default({}),
   });
 
 export const updateStripePaymentIntent =
@@ -683,6 +711,41 @@ export const updateStripePaymentIntent =
         "metadata[checkout_order_id]",
         checkoutOrderId,
       );
+
+      /*
+       * Campaign attribution + the minimum buyer
+       * fields Utmify requires to accept the sale.
+       */
+      form.set(
+        "metadata[customer_name]",
+        `${data.firstName} ${data.lastName}`.slice(
+          0,
+          200,
+        ),
+      );
+
+      form.set(
+        "metadata[customer_country]",
+        data.country.slice(0, 40),
+      );
+
+      form.set(
+        "metadata[pack]",
+        data.pack.slice(0, 40),
+      );
+
+      for (const key of ATTRIBUTION_METADATA_KEYS) {
+        const value =
+          data.attribution[key];
+
+        if (value) {
+          form.set(
+            `metadata[${key}]`,
+            value.slice(0, 250),
+          );
+        }
+      }
+
 
       try {
         const res =

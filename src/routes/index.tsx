@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { captureAttribution } from "@/lib/attribution";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-react";
 import { Marquee } from "@/components/site/Marquee";
@@ -208,6 +209,12 @@ function Stars({ className = "size-4" }: { className?: string }) {
 function ProductPage() {
   const [active, setActive] = useState(0);
   const [selected, setSelected] = useState("1");
+
+  /* Keeps the campaign parameters for the session. */
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+  
   
 
   const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0]!;
