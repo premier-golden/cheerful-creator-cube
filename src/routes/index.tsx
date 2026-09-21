@@ -208,6 +208,12 @@ function Stars({ className = "size-4" }: { className?: string }) {
 function ProductPage() {
   const [active, setActive] = useState(0);
   const [selected, setSelected] = useState("1");
+
+  /* Keeps the campaign parameters for the session. */
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+  
   
 
   const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0]!;
