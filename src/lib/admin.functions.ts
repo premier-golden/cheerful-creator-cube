@@ -10,7 +10,36 @@ import { z } from "zod";
 const inputSchema = z.object({
   password: z.string().min(1).max(200),
   limit: z.number().int().min(1).max(200).optional().default(50),
+  campaign: z.string().max(250).optional(),
 });
+
+/**
+ * Checkout funnel steps, in the visual order the
+ * dashboard shows them. Sessions are aggregated
+ * independently per event, so out-of-order events
+ * are still counted correctly.
+ */
+export const FUNNEL_STEPS = [
+  "checkout_view",
+  "address_started",
+  "address_completed",
+  "shipping_options_viewed",
+  "shipping_selected",
+  "payment_element_loaded",
+  "pay_clicked",
+  "form_validation_passed",
+  "prepare_order_succeeded",
+  "elements_submit_succeeded",
+  "confirm_payment_started",
+  "payment_succeeded",
+] as const;
+
+export type FunnelStepRow = { event: string; sessions: number };
+export type FunnelErrorRow = {
+  errorCode: string;
+  sessions: number;
+  occurrences: number;
+};
 
 export type SaleAttributionRow = {
   id: string;
