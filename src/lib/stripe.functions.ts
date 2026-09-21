@@ -206,6 +206,20 @@ const updateIntentSchema =
       z.string()
         .optional()
         .default(""),
+
+    /*
+     * Campaign attribution only.
+     * Used to report the sale server-side.
+     */
+    attribution:
+      z.record(
+        z.enum(
+          ATTRIBUTION_METADATA_KEYS,
+        ),
+        z.string().max(250),
+      )
+        .optional()
+        .default({}),
   });
 
 export const updateStripePaymentIntent =
