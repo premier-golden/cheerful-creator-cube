@@ -97,6 +97,9 @@ function AdminPage() {
         }
         setRows(result.rows);
         setInitiations(result.initiations);
+        setFunnel(result.funnel);
+        setFunnelErrors(result.funnelErrors);
+        setCampaigns(result.campaigns);
         setError(null);
       } catch {
         if (!cancelled) setError("Could not load sales right now.");
