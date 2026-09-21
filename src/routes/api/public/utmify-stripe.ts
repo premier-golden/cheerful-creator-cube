@@ -378,10 +378,13 @@ export const Route =
               document: null,
 
               country:
-                metadata["customer_country"] ||
-                "GB",
+                countryCode(
+                  metadata["customer_country"],
+                ),
 
-              ip: null,
+              ip:
+                metadata["customer_ip"] ||
+                null,
             },
 
             products: [
