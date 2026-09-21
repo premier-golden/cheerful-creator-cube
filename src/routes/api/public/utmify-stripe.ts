@@ -146,6 +146,22 @@ async function verifyStripeSignature(
   );
 }
 
+/**
+ * Utmify only accepts ISO 3166-1 alpha-2 codes.
+ * This store is United Kingdom only.
+ */
+function countryCode(
+  value: string | undefined,
+): string {
+  const upper = (value ?? "")
+    .trim()
+    .toUpperCase();
+
+  return /^[A-Z]{2}$/.test(upper)
+    ? upper
+    : "GB";
+}
+
 /** Utmify expects "YYYY-MM-DD HH:MM:SS" in UTC. */
 function utcDate(
   seconds: number | undefined,
