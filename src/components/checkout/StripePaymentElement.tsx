@@ -223,6 +223,9 @@ function PayForm({
             shipping,
 
             ...orderData,
+
+            attribution:
+              getAttribution(),
           },
         });
 
