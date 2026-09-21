@@ -341,7 +341,12 @@ function PayForm({
         stripe.confirmPayment as unknown as (
           options: Record<string, unknown>,
         ) => Promise<{
-          error?: { message?: string };
+          error?: {
+            message?: string;
+            code?: string;
+            decline_code?: string;
+            type?: string;
+          };
           paymentIntent?: { status?: string };
         }>;
 
@@ -374,6 +379,13 @@ function PayForm({
             "Payment failed. Please try another card.",
         );
 
+        track("payment_failed", {
+          errorCode: stripeErrorCode(result.error),
+          ...(result.error.message
+            ? { errorMessage: result.error.message }
+            : {}),
+        });
+
         setSubmitting(false);
         return;
       }
@@ -382,11 +394,13 @@ function PayForm({
         result.paymentIntent?.status;
 
       if (status === "succeeded") {
+        /* The checkout page records payment_succeeded. */
         onPaid?.();
         return;
       }
 
       if (status === "processing") {
+        /* The checkout page records payment_processing. */
         onProcessing?.();
         return;
       }
@@ -399,6 +413,10 @@ function PayForm({
           "Your bank needs to authenticate this payment. Please complete the authentication and try again.",
         );
 
+        track("payment_requires_action", {
+          errorCode: "authentication_required",
+        });
+
         setSubmitting(false);
         return;
       }
@@ -407,16 +425,37 @@ function PayForm({
         "The payment was not completed. Please check your card details and try again.",
       );
 
+      track("payment_failed", {
+        errorCode: status
+          ? `intent_${status}`
+          : "payment_not_completed",
+      });
+
       setSubmitting(false);
     } catch (err) {
       console.error(err);
 
-      setError(
+      const timedOut =
         err instanceof Error &&
-          err.message === "timeout"
+        err.message === "timeout";
+
+      setError(
+        timedOut
           ? "The payment is taking longer than expected. Nothing was charged — please tap Pay now to try again."
           : "We couldn't process your payment. Please try again.",
       );
+
+      track(
+        timedOut
+          ? "prepare_order_failed"
+          : "payment_failed",
+        {
+          errorCode: timedOut
+            ? "prepare_order_timeout"
+            : "unexpected_error",
+        },
+      );
+
 
       setSubmitting(false);
     }
