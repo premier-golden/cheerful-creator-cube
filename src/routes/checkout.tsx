@@ -149,6 +149,21 @@ const COUNTRIES = [
   "United Kingdom",
 ];
 
+/**
+ * Delivery fields whose real input marks the start of
+ * the address step. Only the field name is used for
+ * analytics: no typed value ever leaves the browser.
+ */
+const DELIVERY_FIELDS = new Set([
+  "firstName",
+  "lastName",
+  "street",
+  "apartment",
+  "city",
+  "postalCode",
+  "phone",
+]);
+
 function CheckoutPage() {
   const { pack } =
     Route.useSearch();
