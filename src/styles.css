@@ -197,3 +197,15 @@
     color: var(--color-foreground);
   }
 }
+
+/*
+ * CSS health sentinel.
+ *
+ * A throwaway probe element carries this attribute and
+ * its computed outline-color is read after load, so the
+ * app can tell whether this stylesheet really reached
+ * the visitor. Purely diagnostic: it never renders.
+ */
+[data-nl-css-sentinel] {
+  outline-color: rgb(12, 34, 56);
+}

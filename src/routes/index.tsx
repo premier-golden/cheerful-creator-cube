@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { captureAttribution } from "@/lib/attribution";
+import { monitorCssHealth } from "@/lib/css-health";
 import { buildCheckoutHref } from "@/lib/checkout-url";
 import { createFileRoute } from "@tanstack/react-router";
 import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-react";
@@ -218,6 +219,7 @@ function ProductPage() {
   useEffect(() => {
     captureAttribution();
     setHydrated(true);
+    monitorCssHealth();
   }, []);
 
   const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0]!;
@@ -264,6 +266,8 @@ function ProductPage() {
             <img
               src={`${CDN}/Asset_5_5849ac1d-6dd2-4bb4-b9bb-62d76a21ee5d.svg?v=1719328855`}
               alt="Nutrition Geeks"
+              width={130}
+              height={57}
               className="h-auto w-[130px] md:h-12 md:w-auto"
             />
           </a>
@@ -278,6 +282,8 @@ function ProductPage() {
               <img
                 src={GALLERY[active]}
                 alt="Collagen Glow Up Powder"
+                width={1320}
+                height={1000}
                 className="aspect-[1.32/1] w-full object-cover"
               />
               <button aria-label="Zoom image" className="absolute bottom-3 right-3 grid size-9 place-items-center rounded-full bg-background/90 text-ink">
@@ -294,7 +300,7 @@ function ProductPage() {
                     active === i ? "border-muted-foreground/50" : "border-transparent"
                   }`}
                 >
-                  <img src={src} alt="" className="size-full object-cover" />
+                  <img src={src} alt="" width={84} height={100} className="size-full object-cover" />
                 </button>
               ))}
             </div>
@@ -381,7 +387,7 @@ function ProductPage() {
                       }`}
                     >
                       <div className="flex items-center gap-3 p-3">
-                        <img src={b.image} alt={b.title} className="size-[84px] object-contain" />
+                        <img src={b.image} alt={b.title} width={84} height={84} className="size-[84px] object-contain" />
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-base font-bold">{b.title}</span>
@@ -410,7 +416,7 @@ function ProductPage() {
                               key={g.label}
                                 className="flex items-center gap-3 bg-gift-strip px-3 py-2 text-sm text-ink"
                             >
-                              <img src={g.image} alt="" className="size-10 object-contain" />
+                              <img src={g.image} alt="" width={40} height={40} className="size-10 object-contain" />
                               <span className="relative flex-1 pl-3 font-semibold before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:bg-ink">{g.label}</span>
                               <span className="text-xs line-through opacity-70">{g.value}</span>
                             </div>
@@ -583,6 +589,8 @@ function ProductPage() {
               src={`${CDN}/Collagen_Pli_updated_green_5-COMPARISON_5-COMPARISON_5-COMPARISON_530ce688-13e7-463b-aa99-188a7f545e11.png?v=1729094934&width=1000`}
               alt="Collagen Glow Up compared with other collagen brands"
               loading="lazy"
+              width={1000}
+              height={1000}
               className="mx-[-15px] mt-6 aspect-square w-[calc(100%+30px)] max-w-none object-cover md:mx-auto md:mt-8 md:h-auto md:w-full md:max-w-3xl md:object-contain"
             />
           </div>
@@ -694,7 +702,7 @@ function ProductPage() {
               <p className="mt-8 text-[17px] font-semibold">Payment Methods</p>
               <div className="mt-3 flex max-w-sm flex-wrap gap-2" aria-label="Accepted payment methods">
                 {["amex", "diners", "discover", "maestro", "mastercard", "paypal", "unionpay", "visa"].map((p) => (
-                  <img key={p} src={`https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons/flat/${p}.svg`} alt={p} className="h-6 w-[38px] rounded-sm bg-background object-contain" />
+                  <img key={p} src={`https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons/flat/${p}.svg`} alt={p} width={38} height={24} className="h-6 w-[38px] rounded-sm bg-background object-contain" />
                 ))}
               </div>
             </div>
