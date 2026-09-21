@@ -712,6 +712,41 @@ export const updateStripePaymentIntent =
         checkoutOrderId,
       );
 
+      /*
+       * Campaign attribution + the minimum buyer
+       * fields Utmify requires to accept the sale.
+       */
+      form.set(
+        "metadata[customer_name]",
+        `${data.firstName} ${data.lastName}`.slice(
+          0,
+          200,
+        ),
+      );
+
+      form.set(
+        "metadata[customer_country]",
+        data.country.slice(0, 40),
+      );
+
+      form.set(
+        "metadata[pack]",
+        data.pack.slice(0, 40),
+      );
+
+      for (const key of ATTRIBUTION_METADATA_KEYS) {
+        const value =
+          data.attribution[key];
+
+        if (value) {
+          form.set(
+            `metadata[${key}]`,
+            value.slice(0, 250),
+          );
+        }
+      }
+
+
       try {
         const res =
           await fetch(
