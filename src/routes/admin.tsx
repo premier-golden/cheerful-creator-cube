@@ -212,6 +212,48 @@ function AdminPage() {
         </div>
       </section>
 
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          IC and sales by campaign
+        </h2>
+        {byCampaign.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No checkout initiations recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-left text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2">Campaign</th>
+                  <th className="p-2">IC</th>
+                  <th className="p-2">Sales</th>
+                  <th className="p-2">IC → Sale</th>
+                  <th className="p-2">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byCampaign.map(([campaign, stats]) => (
+                  <tr key={campaign} className="border-t border-border">
+                    <td className="p-2">{campaign}</td>
+                    <td className="p-2 font-semibold">{stats.ic}</td>
+                    <td className="p-2 font-semibold">{stats.sales}</td>
+                    <td className="p-2">
+                      {stats.ic > 0
+                        ? `${((stats.sales / stats.ic) * 100).toFixed(1)}%`
+                        : "—"}
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {money(stats.revenue, rows[0]?.currency ?? "gbp")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       {totals.bySource.length > 0 ? (
         <section className="mb-6 rounded-xl border border-border p-4">
           <h2 className="mb-2 text-sm font-medium text-muted-foreground">
