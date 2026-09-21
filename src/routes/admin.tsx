@@ -45,6 +45,11 @@ function money(cents: number, currency: string) {
   }
 }
 
+function pct(part: number, total: number) {
+  if (total <= 0) return "—";
+  return `${((part / total) * 100).toFixed(1)}%`;
+}
+
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-GB", { timeZone: "UTC" });
 }
