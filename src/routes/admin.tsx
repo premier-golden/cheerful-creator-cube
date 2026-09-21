@@ -115,7 +115,41 @@ function AdminPage() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [authed, password, fetchRows]);
+  }, [authed, password, campaign, fetchRows]);
+
+  /*
+   * Funnel derived metrics. Sessions per step come
+   * from the server (distinct checkout_session_id);
+   * here we only compute the ratios.
+   */
+  const funnelView = useMemo(() => {
+    const base = funnel[0]?.sessions ?? 0;
+    const sessionsOf = (event: string) =>
+      funnel.find((step) => step.event === event)?.sessions ?? 0;
+
+    return {
+      base,
+      payClicked: sessionsOf("pay_clicked"),
+      attempts: sessionsOf("confirm_payment_started"),
+      paid: sessionsOf("payment_succeeded"),
+      steps: funnel.map((step, index) => {
+        const previous = index === 0 ? null : (funnel[index - 1]?.sessions ?? 0);
+        const stepConversion =
+          previous === null
+            ? 100
+            : previous > 0
+              ? (step.sessions / previous) * 100
+              : null;
+        return {
+          event: step.event,
+          sessions: step.sessions,
+          share: base > 0 ? (step.sessions / base) * 100 : null,
+          stepConversion,
+          dropOff: stepConversion === null ? null : 100 - stepConversion,
+        };
+      }),
+    };
+  }, [funnel]);
 
   const totals = useMemo(() => {
     const live = rows.filter((row) => row.livemode);
