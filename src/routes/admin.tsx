@@ -84,6 +84,7 @@ function AdminPage() {
           return;
         }
         setRows(result.rows);
+        setInitiations(result.initiations);
         setError(null);
       } catch {
         if (!cancelled) setError("Could not load sales right now.");
@@ -115,6 +116,39 @@ function AdminPage() {
       bySource: [...bySource.entries()].sort((a, b) => b[1] - a[1]),
     };
   }, [rows]);
+
+  /*
+   * IC (checkout initiations) and sales grouped
+   * by campaign, so each campaign shows how many
+   * checkouts it started vs how many sales it closed.
+   */
+  const byCampaign = useMemo(() => {
+    type Entry = { ic: number; sales: number; revenue: number };
+    const map = new Map<string, Entry>();
+
+    const keyOf = (source: string | null, campaign: string | null) =>
+      `${source ?? "direct / unknown"} · ${campaign ?? "—"}`;
+
+    for (const ic of initiations) {
+      const key = keyOf(ic.utmSource ?? ic.src, ic.utmCampaign);
+      const entry = map.get(key) ?? { ic: 0, sales: 0, revenue: 0 };
+      entry.ic += 1;
+      map.set(key, entry);
+    }
+
+    for (const row of rows) {
+      if (!row.livemode) continue;
+      const key = keyOf(row.utmSource ?? row.src, row.utmCampaign);
+      const entry = map.get(key) ?? { ic: 0, sales: 0, revenue: 0 };
+      entry.sales += 1;
+      entry.revenue += row.amountCents;
+      map.set(key, entry);
+    }
+
+    return [...map.entries()].sort(
+      (a, b) => b[1].ic - a[1].ic || b[1].sales - a[1].sales,
+    );
+  }, [initiations, rows]);
 
   if (!authed) {
     return (
