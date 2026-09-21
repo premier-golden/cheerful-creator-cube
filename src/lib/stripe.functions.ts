@@ -437,6 +437,17 @@ export const updateStripePaymentIntent =
        * - PaymentIntent is not already succeeded
        * - PaymentIntent is not canceled
        */
+      /*
+       * The PaymentIntent is created once per checkout
+       * visit and reused while the buyer edits the
+       * shipping method, so the amount can legitimately
+       * be out of date here. The server is still the
+       * only authority: it recalculates the amount and
+       * writes the expected value back to Stripe.
+       */
+      let amountNeedsUpdate =
+        false;
+
       try {
         const verifyResponse =
           await fetch(
@@ -554,23 +565,8 @@ export const updateStripePaymentIntent =
           verifiedIntent.amount !==
           expectedAmount
         ) {
-          console.error(
-            "Stripe amount mismatch before prepare-order",
-            {
-              paymentIntentId,
-
-              stripeAmount:
-                verifiedIntent.amount,
-
-              expectedAmount,
-            },
-          );
-
-          return {
-            ok: false as const,
-            error:
-              "Payment amount mismatch.",
-          };
+          amountNeedsUpdate =
+            true;
         }
 
         /*
@@ -748,6 +744,17 @@ export const updateStripePaymentIntent =
         "receipt_email",
         data.email,
       );
+
+      /*
+       * Server-calculated amount (pack + shipping).
+       * Never a value supplied by the browser.
+       */
+      if (amountNeedsUpdate) {
+        form.set(
+          "amount",
+          String(expectedAmount),
+        );
+      }
 
       form.set(
         "metadata[checkout_order_id]",
