@@ -168,6 +168,7 @@ export const createStripePaymentIntent = createServerFn({
 
             body:
               form.toString(),
+            signal: AbortSignal.timeout(20000),
           },
         );
 
@@ -460,6 +461,7 @@ export const updateStripePaymentIntent =
               headers: {
                 Authorization:
                   `Bearer ${secretKey}`,
+              signal: AbortSignal.timeout(20000),
               },
             },
           );
@@ -674,6 +676,7 @@ export const updateStripePaymentIntent =
                     data.apartment,
 
                   city:
+              signal: AbortSignal.timeout(20000),
                     data.city,
                 }),
             },
@@ -832,6 +835,7 @@ export const updateStripePaymentIntent =
                 "Content-Type":
                   "application/x-www-form-urlencoded",
               },
+              signal: AbortSignal.timeout(20000),
 
               body:
                 form.toString(),
