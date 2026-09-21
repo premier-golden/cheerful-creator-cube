@@ -189,6 +189,9 @@ export const Route =
           const webhookSecret =
             process.env[
               "STRIPE_UTMIFY_WEBHOOK_SECRET"
+            ] ||
+            process.env[
+              "STRIPE_WEBHOOK_SECRET"
             ];
 
           const utmifyToken =
@@ -420,6 +423,15 @@ export const Route =
                 await res.text(),
               );
 
+              await storeAttribution(
+                intent,
+                metadata,
+                amountInCents,
+                name,
+                email,
+                `rejected:${res.status}`,
+              );
+
               /*
                * 200 keeps Stripe from retrying
                * forever on a permanent rejection.
@@ -434,11 +446,29 @@ export const Route =
               error,
             );
 
+            await storeAttribution(
+              intent,
+              metadata,
+              amountInCents,
+              name,
+              email,
+              "failed",
+            );
+
             return new Response(
               "retry later",
               { status: 500 },
             );
           }
+
+          await storeAttribution(
+            intent,
+            metadata,
+            amountInCents,
+            name,
+            email,
+            "sent",
+          );
 
           return new Response("ok");
         },
