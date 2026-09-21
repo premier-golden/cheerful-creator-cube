@@ -653,7 +653,7 @@ function CheckoutPage() {
       };
 
       const mark = (
-        element: Element | null,
+        element: HTMLElement | null,
       ) => {
         if (options?.silent) return;
 
