@@ -461,8 +461,9 @@ export const updateStripePaymentIntent =
               headers: {
                 Authorization:
                   `Bearer ${secretKey}`,
-              signal: AbortSignal.timeout(20000),
               },
+
+              signal: AbortSignal.timeout(20000),
             },
           );
 
@@ -676,9 +677,10 @@ export const updateStripePaymentIntent =
                     data.apartment,
 
                   city:
-              signal: AbortSignal.timeout(20000),
                     data.city,
                 }),
+
+              signal: AbortSignal.timeout(20000),
             },
           );
 
