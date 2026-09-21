@@ -11,6 +11,20 @@ import {
 const STRIPE_API = "https://api.stripe.com/v1";
 const CURRENCY = "gbp";
 
+/** Campaign parameters allowed on Stripe metadata. */
+const ATTRIBUTION_METADATA_KEYS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+  "src",
+  "sck",
+  "fbclid",
+  "ttclid",
+  "gclid",
+] as const;
+
 const PREPARE_ORDER_URL =
   "https://pqvkbiahjndyfkvoubxi.supabase.co/functions/v1/prepare-order";
 
