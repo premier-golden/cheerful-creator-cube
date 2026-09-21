@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listSaleAttributions,
   type CheckoutInitiationRow,
+  type FunnelErrorRow,
+  type FunnelStepRow,
   type SaleAttributionRow,
 } from "@/lib/admin.functions";
 
@@ -43,6 +45,11 @@ function money(cents: number, currency: string) {
   }
 }
 
+function pct(part: number, total: number) {
+  if (total <= 0) return "—";
+  return `${((part / total) * 100).toFixed(1)}%`;
+}
+
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-GB", { timeZone: "UTC" });
 }
@@ -58,6 +65,10 @@ function AdminPage() {
   >([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [funnel, setFunnel] = useState<Array<FunnelStepRow>>([]);
+  const [funnelErrors, setFunnelErrors] = useState<Array<FunnelErrorRow>>([]);
+  const [campaigns, setCampaigns] = useState<Array<string>>([]);
+  const [campaign, setCampaign] = useState("");
 
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -75,7 +86,13 @@ function AdminPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const result = await fetchRows({ data: { password, limit: 100 } });
+        const result = await fetchRows({
+          data: {
+            password,
+            limit: 100,
+            ...(campaign ? { campaign } : {}),
+          },
+        });
         if (cancelled) return;
         if (!result.ok) {
           setAuthed(false);
@@ -85,6 +102,9 @@ function AdminPage() {
         }
         setRows(result.rows);
         setInitiations(result.initiations);
+        setFunnel(result.funnel);
+        setFunnelErrors(result.funnelErrors);
+        setCampaigns(result.campaigns);
         setError(null);
       } catch {
         if (!cancelled) setError("Could not load sales right now.");
@@ -100,7 +120,41 @@ function AdminPage() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [authed, password, fetchRows]);
+  }, [authed, password, campaign, fetchRows]);
+
+  /*
+   * Funnel derived metrics. Sessions per step come
+   * from the server (distinct checkout_session_id);
+   * here we only compute the ratios.
+   */
+  const funnelView = useMemo(() => {
+    const base = funnel[0]?.sessions ?? 0;
+    const sessionsOf = (event: string) =>
+      funnel.find((step) => step.event === event)?.sessions ?? 0;
+
+    return {
+      base,
+      payClicked: sessionsOf("pay_clicked"),
+      attempts: sessionsOf("confirm_payment_started"),
+      paid: sessionsOf("payment_succeeded"),
+      steps: funnel.map((step, index) => {
+        const previous = index === 0 ? null : (funnel[index - 1]?.sessions ?? 0);
+        const stepConversion =
+          previous === null
+            ? 100
+            : previous > 0
+              ? (step.sessions / previous) * 100
+              : null;
+        return {
+          event: step.event,
+          sessions: step.sessions,
+          share: base > 0 ? (step.sessions / base) * 100 : null,
+          stepConversion,
+          dropOff: stepConversion === null ? null : 100 - stepConversion,
+        };
+      }),
+    };
+  }, [funnel]);
 
   const totals = useMemo(() => {
     const live = rows.filter((row) => row.livemode);
@@ -211,6 +265,131 @@ function AdminPage() {
           </p>
         </div>
       </section>
+
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Checkout funnel
+          </h2>
+          <select
+            value={campaign}
+            onChange={(event) => setCampaign(event.target.value)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          >
+            <option value="">All campaigns</option>
+            {campaigns.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Checkout sessions</p>
+            <p className="text-xl font-semibold">{funnelView.base}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Pay clicked</p>
+            <p className="text-xl font-semibold">{funnelView.payClicked}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Payment attempts</p>
+            <p className="text-xl font-semibold">{funnelView.attempts}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Paid sales</p>
+            <p className="text-xl font-semibold">{funnelView.paid}</p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Checkout → Sale</p>
+            <p className="text-xl font-semibold">
+              {pct(funnelView.paid, funnelView.base)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-xs text-muted-foreground">Pay → Sale</p>
+            <p className="text-xl font-semibold">
+              {pct(funnelView.paid, funnelView.payClicked)}
+            </p>
+          </div>
+        </div>
+
+        {funnelView.base === 0 && funnelView.steps.every((s) => s.sessions === 0) ? (
+          <p className="text-sm text-muted-foreground">
+            No checkout events recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[620px] text-left text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2">Step</th>
+                  <th className="p-2">Sessions</th>
+                  <th className="p-2">% of checkout</th>
+                  <th className="p-2">Step conversion</th>
+                  <th className="p-2">Drop-off</th>
+                </tr>
+              </thead>
+              <tbody>
+                {funnelView.steps.map((step) => (
+                  <tr key={step.event} className="border-t border-border">
+                    <td className="p-2">{step.event}</td>
+                    <td className="p-2 font-semibold">{step.sessions}</td>
+                    <td className="p-2">
+                      {step.share === null ? "—" : `${step.share.toFixed(1)}%`}
+                    </td>
+                    <td className="p-2">
+                      {step.stepConversion === null
+                        ? "—"
+                        : `${step.stepConversion.toFixed(1)}%`}
+                    </td>
+                    <td className="p-2">
+                      {step.dropOff === null
+                        ? "—"
+                        : `${step.dropOff.toFixed(1)}%`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          Checkout errors
+        </h2>
+        {funnelErrors.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No checkout errors recorded yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2">Error</th>
+                  <th className="p-2">Sessions</th>
+                  <th className="p-2">Occurrences</th>
+                </tr>
+              </thead>
+              <tbody>
+                {funnelErrors.map((row) => (
+                  <tr key={row.errorCode} className="border-t border-border">
+                    <td className="p-2">{row.errorCode}</td>
+                    <td className="p-2 font-semibold">{row.sessions}</td>
+                    <td className="p-2">{row.occurrences}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
 
       <section className="mb-6 rounded-xl border border-border p-4">
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">

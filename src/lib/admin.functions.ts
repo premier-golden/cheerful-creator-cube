@@ -10,7 +10,36 @@ import { z } from "zod";
 const inputSchema = z.object({
   password: z.string().min(1).max(200),
   limit: z.number().int().min(1).max(200).optional().default(50),
+  campaign: z.string().max(250).optional(),
 });
+
+/**
+ * Checkout funnel steps, in the visual order the
+ * dashboard shows them. Sessions are aggregated
+ * independently per event, so out-of-order events
+ * are still counted correctly.
+ */
+export const FUNNEL_STEPS = [
+  "checkout_view",
+  "address_started",
+  "address_completed",
+  "shipping_options_viewed",
+  "shipping_selected",
+  "payment_element_loaded",
+  "pay_clicked",
+  "form_validation_passed",
+  "prepare_order_succeeded",
+  "elements_submit_succeeded",
+  "confirm_payment_started",
+  "payment_succeeded",
+] as const;
+
+export type FunnelStepRow = { event: string; sessions: number };
+export type FunnelErrorRow = {
+  errorCode: string;
+  sessions: number;
+  occurrences: number;
+};
 
 export type SaleAttributionRow = {
   id: string;
@@ -55,7 +84,12 @@ export type SaleAttributionsResult =
       ok: true;
       rows: Array<SaleAttributionRow>;
       initiations: Array<CheckoutInitiationRow>;
+      funnel: Array<FunnelStepRow>;
+      funnelErrors: Array<FunnelErrorRow>;
+      campaigns: Array<string>;
     };
+
+const NO_CAMPAIGN = "(no campaign)";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -99,8 +133,73 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
       throw new Error(icError.message);
     }
 
+    /*
+     * Checkout funnel / errors. Read-only aggregation
+     * of already-collected events; nothing is written.
+     */
+    const { data: eventRows, error: eventError } = await supabaseAdmin
+      .from("checkout_events")
+      .select(
+        "checkout_session_id, event, error_code, utm_campaign, utm_source, utm_medium",
+      )
+      .order("created_at", { ascending: false })
+      .limit(20000);
+
+    if (eventError) {
+      throw new Error(eventError.message);
+    }
+
+    const allEvents = eventRows ?? [];
+
+    const campaigns = [
+      ...new Set(
+        allEvents.map((row) => row.utm_campaign?.trim() || NO_CAMPAIGN),
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+
+    const selected = data.campaign?.trim();
+    const scoped = selected
+      ? allEvents.filter(
+          (row) => (row.utm_campaign?.trim() || NO_CAMPAIGN) === selected,
+        )
+      : allEvents;
+
+    const sessionsByEvent = new Map<string, Set<string>>();
+    const errorSessions = new Map<string, Set<string>>();
+    const errorCounts = new Map<string, number>();
+
+    for (const row of scoped) {
+      const bucket = sessionsByEvent.get(row.event) ?? new Set<string>();
+      bucket.add(row.checkout_session_id);
+      sessionsByEvent.set(row.event, bucket);
+
+      const code = row.error_code;
+      if (code) {
+        const affected = errorSessions.get(code) ?? new Set<string>();
+        affected.add(row.checkout_session_id);
+        errorSessions.set(code, affected);
+        errorCounts.set(code, (errorCounts.get(code) ?? 0) + 1);
+      }
+    }
+
+    const funnel: Array<FunnelStepRow> = FUNNEL_STEPS.map((event) => ({
+      event,
+      sessions: sessionsByEvent.get(event)?.size ?? 0,
+    }));
+
+    const funnelErrors: Array<FunnelErrorRow> = [...errorCounts.entries()]
+      .map(([errorCode, occurrences]) => ({
+        errorCode,
+        occurrences,
+        sessions: errorSessions.get(errorCode)?.size ?? 0,
+      }))
+      .sort((a, b) => b.sessions - a.sessions || b.occurrences - a.occurrences);
+
     return {
       ok: true,
+      funnel,
+      funnelErrors,
+      campaigns,
       initiations: (icRows ?? []).map((row) => ({
         id: row.id,
         pack: row.pack,
