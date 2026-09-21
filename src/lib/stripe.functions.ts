@@ -768,13 +768,33 @@ export const updateStripePaymentIntent =
 
       form.set(
         "metadata[customer_country]",
-        data.country.slice(0, 40),
+        toCountryCode(data.country),
       );
 
       form.set(
         "metadata[pack]",
         data.pack.slice(0, 40),
       );
+
+      /*
+       * Buyer IP: Utmify requires it and it also
+       * improves ad-platform attribution.
+       */
+      try {
+        const ip =
+          getRequestIP({
+            xForwardedFor: true,
+          });
+
+        if (ip) {
+          form.set(
+            "metadata[customer_ip]",
+            ip.slice(0, 60),
+          );
+        }
+      } catch {
+        /* IP is optional at this layer. */
+      }
 
       for (const key of ATTRIBUTION_METADATA_KEYS) {
         const value =
