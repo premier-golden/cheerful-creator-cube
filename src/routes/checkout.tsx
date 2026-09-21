@@ -555,7 +555,9 @@ function CheckoutPage() {
       const checks: {
         name: string;
         message: string;
+        missingCode: string;
         invalidMessage?: string;
+        invalidCode?: string;
         isValid?: (
           value: string,
         ) => boolean;
@@ -564,8 +566,10 @@ function CheckoutPage() {
           name: "email",
           message:
             "Please enter your email address.",
+          missingCode: "email_missing",
           invalidMessage:
             "This email address looks incorrect. Please check it and try again.",
+          invalidCode: "email_invalid",
           isValid: (value) =>
             /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(
               value,
@@ -575,32 +579,53 @@ function CheckoutPage() {
           name: "firstName",
           message:
             "Please enter your first name.",
+          missingCode: "first_name_missing",
         },
         {
           name: "lastName",
           message:
             "Please enter your last name.",
+          missingCode: "last_name_missing",
         },
         {
           name: "street",
           message:
             "Please enter your delivery address.",
+          missingCode: "street_missing",
         },
         {
           name: "city",
           message:
             "Please enter your city.",
+          missingCode: "city_missing",
         },
         {
           name: "postalCode",
           message:
             "Please enter your postcode.",
+          missingCode: "postcode_missing",
           invalidMessage:
             "Please enter a valid UK postcode, for example SW1A 1AA.",
+          invalidCode: "postcode_invalid",
           isValid: (value) =>
             isValidUkPostcode(value),
         },
       ];
+
+      /* Analytics only: never blocks the flow. */
+      const trackInvalid = (
+        code: string,
+        message: string,
+      ) =>
+        trackCheckout(
+          "form_validation_failed",
+          {
+            pack: bundle.id,
+            shipping: shipping?.id ?? null,
+            errorCode: code,
+            errorMessage: message,
+          },
+        );
 
       for (const check of checks) {
         const element = field(
@@ -613,6 +638,12 @@ function CheckoutPage() {
 
         if (!raw) {
           markInvalid(element);
+
+          trackInvalid(
+            check.missingCode,
+            check.message,
+          );
+
           return check.message;
         }
 
@@ -622,10 +653,17 @@ function CheckoutPage() {
         ) {
           markInvalid(element);
 
-          return (
+          const message =
             check.invalidMessage ??
-            check.message
+            check.message;
+
+          trackInvalid(
+            check.invalidCode ??
+              check.missingCode,
+            message,
           );
+
+          return message;
         }
       }
 
@@ -639,11 +677,17 @@ function CheckoutPage() {
           markInvalid(firstShipping);
         }
 
+        trackInvalid(
+          "shipping_missing",
+          "Please choose a delivery method.",
+        );
+
         return "Please choose a delivery method.";
       }
 
       return null;
-    }, [shipping]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shipping, bundle.id]);
 
   /*
    * ----------------------------------------------
