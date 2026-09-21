@@ -30,6 +30,8 @@ export const CHECKOUT_EVENTS = [
   "payment_processing",
   "payment_failed",
   "payment_succeeded",
+  /* Technical diagnostic, not a funnel step. */
+  "css_load_failed",
 ] as const;
 
 export type CheckoutEvent =

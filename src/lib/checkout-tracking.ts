@@ -88,6 +88,7 @@ const onceOnly = new Set<CheckoutEvent>([
   "shipping_options_viewed",
   "payment_element_loaded",
   "payment_succeeded",
+  "css_load_failed",
 ]);
 
 const alreadySent = new Set<string>();
