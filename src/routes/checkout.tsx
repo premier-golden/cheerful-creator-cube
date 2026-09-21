@@ -368,7 +368,7 @@ function CheckoutPage() {
         paidRef.current = true;
 
         /*
-         * Funnel step: only a真 Stripe `succeeded`
+         * Funnel step: only a real Stripe `succeeded`
          * reaches this callback.
          */
         trackCheckout("payment_succeeded", {
@@ -462,7 +462,13 @@ function CheckoutPage() {
     useCallback(() => {
       setError(null);
       setStatus("processing");
-    }, []);
+
+      trackCheckout("payment_processing", {
+        pack: bundle.id,
+        shipping: shipping?.id ?? null,
+      });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bundle.id, shipping?.id]);
 
   /*
    * ----------------------------------------------
