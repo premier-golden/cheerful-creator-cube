@@ -117,7 +117,13 @@ export const trackCheckoutStep = createServerFn({
 
       await supabaseAdmin
         .from("checkout_events")
-        .insert(row);
+        .insert(
+          row as unknown as Parameters<
+            ReturnType<
+              typeof supabaseAdmin.from<"checkout_events">
+            >["insert"]
+          >[0],
+        );
     } catch {
       /*
        * Analytics must never surface an error to the
