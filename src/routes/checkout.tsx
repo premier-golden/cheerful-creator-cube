@@ -149,6 +149,21 @@ const COUNTRIES = [
   "United Kingdom",
 ];
 
+/**
+ * Delivery fields whose real input marks the start of
+ * the address step. Only the field name is used for
+ * analytics: no typed value ever leaves the browser.
+ */
+const DELIVERY_FIELDS = new Set([
+  "firstName",
+  "lastName",
+  "street",
+  "apartment",
+  "city",
+  "postalCode",
+  "phone",
+]);
+
 function CheckoutPage() {
   const { pack } =
     Route.useSearch();
@@ -533,14 +548,21 @@ function CheckoutPage() {
   }
 
   const validateCheckout =
-    useCallback((): string | null => {
+    useCallback((options?: {
+      /** Analytics probe: no field marks, no events. */
+      silent?: boolean;
+      /** Skips the delivery-method requirement. */
+      skipShipping?: boolean;
+    }): string | null => {
       const form = formRef.current;
 
       if (!form) {
         return "We couldn't read your details. Please refresh the page and try again.";
       }
 
-      clearInvalidMarks(form);
+      if (!options?.silent) {
+        clearInvalidMarks(form);
+      }
 
       const field = (
         name: string,
@@ -616,7 +638,9 @@ function CheckoutPage() {
       const trackInvalid = (
         code: string,
         message: string,
-      ) =>
+      ) => {
+        if (options?.silent) return;
+
         trackCheckout(
           "form_validation_failed",
           {
@@ -626,6 +650,15 @@ function CheckoutPage() {
             errorMessage: message,
           },
         );
+      };
+
+      const mark = (
+        element: HTMLElement | null,
+      ) => {
+        if (options?.silent) return;
+
+        markInvalid(element);
+      };
 
       for (const check of checks) {
         const element = field(
@@ -637,7 +670,7 @@ function CheckoutPage() {
           "";
 
         if (!raw) {
-          markInvalid(element);
+          mark(element);
 
           trackInvalid(
             check.missingCode,
@@ -651,7 +684,7 @@ function CheckoutPage() {
           check.isValid &&
           !check.isValid(raw)
         ) {
-          markInvalid(element);
+          mark(element);
 
           const message =
             check.invalidMessage ??
@@ -667,14 +700,17 @@ function CheckoutPage() {
         }
       }
 
-      if (!shipping) {
+      if (
+        !options?.skipShipping &&
+        !shipping
+      ) {
         const firstShipping =
           form.querySelector(
             "input[name='shippingMethod']",
           ) as HTMLInputElement | null;
 
         if (firstShipping) {
-          markInvalid(firstShipping);
+          mark(firstShipping);
         }
 
         trackInvalid(
@@ -688,6 +724,126 @@ function CheckoutPage() {
       return null;
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shipping, bundle.id]);
+
+  /*
+   * ----------------------------------------------
+   * DELIVERY FUNNEL (analytics only)
+   * ----------------------------------------------
+   *
+   * Fire-and-forget funnel steps for the delivery
+   * section. No typed value is ever sent: only the
+   * fact that a step happened. Nothing here can
+   * block the form, the shipping rules or Stripe.
+   */
+  const addressStartedRef =
+    useRef(false);
+
+  const addressCompletedRef =
+    useRef(false);
+
+  const shippingViewedRef =
+    useRef(false);
+
+  const trackAddressProgress =
+    useCallback(() => {
+      try {
+        if (
+          addressCompletedRef.current
+        ) {
+          return;
+        }
+
+        /*
+         * Reuses the real checkout validation in
+         * silent mode (no field marks, no error
+         * events) and without the shipping step,
+         * so it mirrors exactly the rules that
+         * unlock the delivery methods.
+         */
+        const problem =
+          validateCheckout({
+            silent: true,
+            skipShipping: true,
+          });
+
+        if (problem === null) {
+          addressCompletedRef.current =
+            true;
+
+          trackCheckout(
+            "address_completed",
+            { pack: bundle.id },
+          );
+        }
+      } catch {
+        /* analytics must never throw */
+      }
+    }, [validateCheckout, bundle.id]);
+
+  function handleFormInput(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    try {
+      const target =
+        event.target as
+          | HTMLInputElement
+          | null;
+
+      const name =
+        target?.name ?? "";
+
+      if (
+        !addressStartedRef.current &&
+        DELIVERY_FIELDS.has(name) &&
+        (target?.value ?? "").trim()
+          .length > 0
+      ) {
+        addressStartedRef.current =
+          true;
+
+        trackCheckout(
+          "address_started",
+          { pack: bundle.id },
+        );
+      }
+
+      trackAddressProgress();
+    } catch {
+      /* analytics must never throw */
+    }
+  }
+
+  /*
+   * Address auto-fill updates state without firing
+   * input events, so completion is re-checked here.
+   */
+  useEffect(() => {
+    trackAddressProgress();
+  }, [
+    street,
+    city,
+    postcode,
+    email,
+    trackAddressProgress,
+  ]);
+
+  /* Real shipping options became available. */
+  useEffect(() => {
+    if (
+      !postcodeValid ||
+      shippingViewedRef.current
+    ) {
+      return;
+    }
+
+    shippingViewedRef.current =
+      true;
+
+    trackCheckout(
+      "shipping_options_viewed",
+      { pack: bundle.id },
+    );
+  }, [postcodeValid, bundle.id]);
 
   /*
    * ----------------------------------------------
@@ -869,6 +1025,9 @@ function CheckoutPage() {
             ref={formRef}
             onSubmit={
               handleSubmit
+            }
+            onInput={
+              handleFormInput
             }
           >
             {/* Contact */}
@@ -1062,11 +1221,26 @@ function CheckoutPage() {
                             checked={
                               selected
                             }
-                            onChange={() =>
+                            onChange={() => {
+                              if (
+                                shippingId !==
+                                method.id
+                              ) {
+                                /* Analytics only. */
+                                trackCheckout(
+                                  "shipping_selected",
+                                  {
+                                    pack: bundle.id,
+                                    shipping:
+                                      method.id,
+                                  },
+                                );
+                              }
+
                               setShippingId(
                                 method.id,
-                              )
-                            }
+                              );
+                            }}
                             className="size-4 accent-[var(--co-accent)]"
                           />
 

@@ -11,6 +11,10 @@
 
 export const CHECKOUT_EVENTS = [
   "checkout_view",
+  "address_started",
+  "address_completed",
+  "shipping_options_viewed",
+  "shipping_selected",
   "payment_element_loaded",
   "payment_element_failed",
   "pay_clicked",
