@@ -113,6 +113,81 @@ export type Database = {
         }
         Relationships: []
       }
+      sale_attributions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          customer_country: string | null
+          customer_email: string | null
+          customer_name: string | null
+          fbclid: string | null
+          gclid: string | null
+          id: string
+          livemode: boolean
+          pack: string | null
+          paid_at: string
+          sck: string | null
+          src: string | null
+          stripe_payment_intent_id: string
+          ttclid: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          utmify_status: string | null
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          customer_country?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          livemode?: boolean
+          pack?: string | null
+          paid_at?: string
+          sck?: string | null
+          src?: string | null
+          stripe_payment_intent_id: string
+          ttclid?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          utmify_status?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          customer_country?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          livemode?: boolean
+          pack?: string | null
+          paid_at?: string
+          sck?: string | null
+          src?: string | null
+          stripe_payment_intent_id?: string
+          ttclid?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          utmify_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
