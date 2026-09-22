@@ -26,7 +26,10 @@ import {
   getAttribution,
 } from "@/lib/attribution";
 import { recordCheckoutInitiation } from "@/lib/ic.functions";
-import { trackCheckout } from "@/lib/checkout-tracking";
+import {
+  intentIdFromSecret,
+  trackCheckout,
+} from "@/lib/checkout-tracking";
 import { getStripePaymentIntentStatus } from "@/lib/stripe.functions";
 import { useServerFn } from "@tanstack/react-start";
 
