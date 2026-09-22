@@ -403,7 +403,10 @@ function AdminPage() {
             className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
           >
             <option value="">All campaigns</option>
-            {campaigns.map((name) => (
+            {(campaign && !campaigns.includes(campaign)
+              ? [campaign, ...campaigns]
+              : campaigns
+            ).map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
