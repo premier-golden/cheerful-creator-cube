@@ -594,7 +594,7 @@ export function StripePaymentElement({
   formRef: RefObject<HTMLFormElement | null>;
   validate?: CheckoutValidator;
   orderSummary?: ReactNode;
-  onPaid?: () => void;
+  onPaid?: (paymentIntentId: string | null) => void;
   onProcessing?: () => void;
 }) {
   const createIntent = useServerFn(
