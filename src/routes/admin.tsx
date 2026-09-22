@@ -329,9 +329,55 @@ function AdminPage() {
         </span>
       </header>
 
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-sm font-medium text-muted-foreground">
+            Period
+          </label>
+          <select
+            value={period}
+            onChange={(event) => setPeriod(event.target.value as Period)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          >
+            {PERIODS.map((value) => (
+              <option key={value} value={value}>
+                {PERIOD_LABELS[value]}
+              </option>
+            ))}
+          </select>
+
+          {period === "custom" ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={customFrom}
+                max={spToday()}
+                onChange={(event) => setCustomFrom(event.target.value)}
+                className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+              />
+              <span className="text-sm text-muted-foreground">→</span>
+              <input
+                type="date"
+                value={customTo}
+                max={spToday()}
+                onChange={(event) => setCustomTo(event.target.value)}
+                className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+              />
+            </div>
+          ) : null}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {range.from === range.to
+            ? prettyDay(range.from)
+            : `${prettyDay(range.from)} → ${prettyDay(range.to)}`}{" "}
+          · America/Sao_Paulo
+        </p>
+      </section>
+
       {error ? (
         <p className="mb-4 text-sm text-destructive">{error}</p>
       ) : null}
+
 
       <section className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-border p-4">
