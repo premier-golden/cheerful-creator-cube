@@ -11,6 +11,13 @@ const inputSchema = z.object({
   password: z.string().min(1).max(200),
   limit: z.number().int().min(1).max(200).optional().default(50),
   campaign: z.string().max(250).optional(),
+  /**
+   * Absolute UTC instants (ISO) for the dashboard period.
+   * The client converts the America/Sao_Paulo day boundaries
+   * into UTC, so timestamps near midnight land on the right day.
+   */
+  startIso: z.string().datetime().optional(),
+  endIso: z.string().datetime().optional(),
 });
 
 /**
@@ -113,9 +120,15 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
       "@/integrations/supabase/client.server"
     );
 
-    const { data: rows, error } = await supabaseAdmin
-      .from("sale_attributions")
-      .select("*")
+    const { startIso, endIso } = data;
+
+    // Sales are filtered by paid_at (payment confirmation),
+    // checkout events / initiations by created_at.
+    let salesQuery = supabaseAdmin.from("sale_attributions").select("*");
+    if (startIso) salesQuery = salesQuery.gte("paid_at", startIso);
+    if (endIso) salesQuery = salesQuery.lte("paid_at", endIso);
+
+    const { data: rows, error } = await salesQuery
       .order("paid_at", { ascending: false })
       .limit(data.limit);
 
@@ -123,9 +136,11 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
-    const { data: icRows, error: icError } = await supabaseAdmin
-      .from("checkout_initiations")
-      .select("*")
+    let icQuery = supabaseAdmin.from("checkout_initiations").select("*");
+    if (startIso) icQuery = icQuery.gte("created_at", startIso);
+    if (endIso) icQuery = icQuery.lte("created_at", endIso);
+
+    const { data: icRows, error: icError } = await icQuery
       .order("created_at", { ascending: false })
       .limit(500);
 
@@ -137,11 +152,15 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
      * Checkout funnel / errors. Read-only aggregation
      * of already-collected events; nothing is written.
      */
-    const { data: eventRows, error: eventError } = await supabaseAdmin
+    let eventsQuery = supabaseAdmin
       .from("checkout_events")
       .select(
         "checkout_session_id, event, error_code, utm_campaign, utm_source, utm_medium",
-      )
+      );
+    if (startIso) eventsQuery = eventsQuery.gte("created_at", startIso);
+    if (endIso) eventsQuery = eventsQuery.lte("created_at", endIso);
+
+    const { data: eventRows, error: eventError } = await eventsQuery
       .order("created_at", { ascending: false })
       .limit(20000);
 

@@ -54,6 +54,74 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("en-GB", { timeZone: "UTC" });
 }
 
+/*
+ * Period filter. The dashboard reference timezone is
+ * America/Sao_Paulo (fixed UTC-03:00, no DST since 2019),
+ * so day boundaries are built with that offset and sent
+ * to the server as absolute UTC instants.
+ */
+const SP_OFFSET = "-03:00";
+const PERIODS = ["today", "yesterday", "last7", "last30", "custom"] as const;
+type Period = (typeof PERIODS)[number];
+
+const PERIOD_LABELS: Record<Period, string> = {
+  today: "Today",
+  yesterday: "Yesterday",
+  last7: "Last 7 days",
+  last30: "Last 30 days",
+  custom: "Custom",
+};
+
+/** Current calendar date in Sao Paulo, as YYYY-MM-DD. */
+function spToday() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function shiftDay(date: string, days: number) {
+  const base = new Date(`${date}T12:00:00${SP_OFFSET}`);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function dayStartIso(date: string) {
+  return new Date(`${date}T00:00:00.000${SP_OFFSET}`).toISOString();
+}
+
+function dayEndIso(date: string) {
+  return new Date(`${date}T23:59:59.999${SP_OFFSET}`).toISOString();
+}
+
+function resolveRange(period: Period, customFrom: string, customTo: string) {
+  const today = spToday();
+  switch (period) {
+    case "today":
+      return { from: today, to: today };
+    case "yesterday": {
+      const y = shiftDay(today, -1);
+      return { from: y, to: y };
+    }
+    case "last7":
+      return { from: shiftDay(today, -6), to: today };
+    case "last30":
+      return { from: shiftDay(today, -29), to: today };
+    case "custom": {
+      const from = customFrom || today;
+      const to = customTo || today;
+      return from <= to ? { from, to } : { from: to, to: from };
+    }
+  }
+}
+
+function prettyDay(date: string) {
+  const [y, m, d] = date.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 function AdminPage() {
   const fetchRows = useServerFn(listSaleAttributions);
 
@@ -69,6 +137,16 @@ function AdminPage() {
   const [funnelErrors, setFunnelErrors] = useState<Array<FunnelErrorRow>>([]);
   const [campaigns, setCampaigns] = useState<Array<string>>([]);
   const [campaign, setCampaign] = useState("");
+  const [period, setPeriod] = useState<Period>("today");
+  const [customFrom, setCustomFrom] = useState(() => spToday());
+  const [customTo, setCustomTo] = useState(() => spToday());
+
+  const range = useMemo(
+    () => resolveRange(period, customFrom, customTo),
+    [period, customFrom, customTo],
+  );
+  const startIso = useMemo(() => dayStartIso(range.from), [range.from]);
+  const endIso = useMemo(() => dayEndIso(range.to), [range.to]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -89,7 +167,9 @@ function AdminPage() {
         const result = await fetchRows({
           data: {
             password,
-            limit: 100,
+            limit: 200,
+            startIso,
+            endIso,
             ...(campaign ? { campaign } : {}),
           },
         });
@@ -120,7 +200,7 @@ function AdminPage() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [authed, password, campaign, fetchRows]);
+  }, [authed, password, campaign, startIso, endIso, fetchRows]);
 
   /*
    * Funnel derived metrics. Sessions per step come
@@ -249,9 +329,55 @@ function AdminPage() {
         </span>
       </header>
 
+      <section className="mb-6 rounded-xl border border-border p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-sm font-medium text-muted-foreground">
+            Period
+          </label>
+          <select
+            value={period}
+            onChange={(event) => setPeriod(event.target.value as Period)}
+            className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          >
+            {PERIODS.map((value) => (
+              <option key={value} value={value}>
+                {PERIOD_LABELS[value]}
+              </option>
+            ))}
+          </select>
+
+          {period === "custom" ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={customFrom}
+                max={spToday()}
+                onChange={(event) => setCustomFrom(event.target.value)}
+                className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+              />
+              <span className="text-sm text-muted-foreground">→</span>
+              <input
+                type="date"
+                value={customTo}
+                max={spToday()}
+                onChange={(event) => setCustomTo(event.target.value)}
+                className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+              />
+            </div>
+          ) : null}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {range.from === range.to
+            ? prettyDay(range.from)
+            : `${prettyDay(range.from)} → ${prettyDay(range.to)}`}{" "}
+          · America/Sao_Paulo
+        </p>
+      </section>
+
       {error ? (
         <p className="mb-4 text-sm text-destructive">{error}</p>
       ) : null}
+
 
       <section className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-border p-4">
@@ -277,7 +403,10 @@ function AdminPage() {
             className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
           >
             <option value="">All campaigns</option>
-            {campaigns.map((name) => (
+            {(campaign && !campaigns.includes(campaign)
+              ? [campaign, ...campaigns]
+              : campaigns
+            ).map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
