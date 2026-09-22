@@ -120,9 +120,15 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
       "@/integrations/supabase/client.server"
     );
 
-    const { data: rows, error } = await supabaseAdmin
-      .from("sale_attributions")
-      .select("*")
+    const { startIso, endIso } = data;
+
+    // Sales are filtered by paid_at (payment confirmation),
+    // checkout events / initiations by created_at.
+    let salesQuery = supabaseAdmin.from("sale_attributions").select("*");
+    if (startIso) salesQuery = salesQuery.gte("paid_at", startIso);
+    if (endIso) salesQuery = salesQuery.lte("paid_at", endIso);
+
+    const { data: rows, error } = await salesQuery
       .order("paid_at", { ascending: false })
       .limit(data.limit);
 
@@ -130,9 +136,11 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
-    const { data: icRows, error: icError } = await supabaseAdmin
-      .from("checkout_initiations")
-      .select("*")
+    let icQuery = supabaseAdmin.from("checkout_initiations").select("*");
+    if (startIso) icQuery = icQuery.gte("created_at", startIso);
+    if (endIso) icQuery = icQuery.lte("created_at", endIso);
+
+    const { data: icRows, error: icError } = await icQuery
       .order("created_at", { ascending: false })
       .limit(500);
 
