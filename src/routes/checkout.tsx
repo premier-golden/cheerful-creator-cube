@@ -429,6 +429,12 @@ function CheckoutPage() {
             value("phone"),
           );
 
+          /*
+           * The event_id is the Stripe PaymentIntent id,
+           * exactly the same value the server-side
+           * Events API conversion uses, so TikTok
+           * deduplicates browser + server.
+           */
           tiktokTrack(
             "CompletePayment",
             {
@@ -438,6 +444,7 @@ function CheckoutPage() {
               contents:
                 tiktokContents,
             },
+            paymentIntentId ?? undefined,
           );
         } catch (
           trackingError
