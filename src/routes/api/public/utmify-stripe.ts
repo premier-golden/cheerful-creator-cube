@@ -359,6 +359,51 @@ export const Route =
               ? email.split("@")[0]
               : "Customer");
 
+          /*
+           * TikTok Events API conversion.
+           *
+           * Fully isolated: the helper never throws, so
+           * a TikTok outage cannot affect Utmify, the
+           * Supabase order, Shopify or Wiio.
+           */
+          try {
+            const { reportTikTokPurchase } =
+              await import(
+                "@/lib/tiktok-events.server"
+              );
+
+            await reportTikTokPurchase({
+              eventId: intent.id,
+              amount: amountInCents / 100,
+              currency: (
+                intent.currency ?? "gbp"
+              ).toUpperCase(),
+              contentId:
+                metadata["pack"] ?? null,
+              contentName:
+                intent.description ?? null,
+              quantity: 1,
+              email: email || null,
+              phone:
+                metadata["customer_phone"] ?? null,
+              ttclid: metadata["ttclid"] ?? null,
+              ttp: metadata["ttp"] ?? null,
+              ip: metadata["customer_ip"] ?? null,
+              userAgent:
+                metadata["customer_ua"] ?? null,
+              createdAt: intent.created ?? null,
+              testEventCode:
+                process.env[
+                  "TIKTOK_TEST_EVENT_CODE"
+                ] ?? null,
+            });
+          } catch (error) {
+            console.error(
+              "TikTok conversion skipped",
+              error,
+            );
+          }
+
           const approvedAt =
             utcDate(undefined);
 
