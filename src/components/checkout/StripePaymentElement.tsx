@@ -109,7 +109,9 @@ function PayForm({
   formRef: RefObject<HTMLFormElement | null>;
   validate?: CheckoutValidator | undefined;
   orderSummary?: ReactNode;
-  onPaid?: (() => void) | undefined;
+  onPaid?:
+    | ((paymentIntentId: string | null) => void)
+    | undefined;
   onProcessing?: (() => void) | undefined;
 }) {
   const stripe = useStripe();
