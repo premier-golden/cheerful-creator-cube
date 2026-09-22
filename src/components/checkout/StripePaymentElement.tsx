@@ -397,7 +397,7 @@ function PayForm({
 
       if (status === "succeeded") {
         /* The checkout page records payment_succeeded. */
-        onPaid?.();
+        onPaid?.(paymentIntentId);
         return;
       }
 
