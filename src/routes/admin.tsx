@@ -200,7 +200,7 @@ function AdminPage() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [authed, password, campaign, fetchRows]);
+  }, [authed, password, campaign, startIso, endIso, fetchRows]);
 
   /*
    * Funnel derived metrics. Sessions per step come
