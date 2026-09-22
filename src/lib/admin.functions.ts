@@ -11,6 +11,13 @@ const inputSchema = z.object({
   password: z.string().min(1).max(200),
   limit: z.number().int().min(1).max(200).optional().default(50),
   campaign: z.string().max(250).optional(),
+  /**
+   * Absolute UTC instants (ISO) for the dashboard period.
+   * The client converts the America/Sao_Paulo day boundaries
+   * into UTC, so timestamps near midnight land on the right day.
+   */
+  startIso: z.string().datetime().optional(),
+  endIso: z.string().datetime().optional(),
 });
 
 /**
