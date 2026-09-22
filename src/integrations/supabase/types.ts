@@ -293,6 +293,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_conversions: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          detail: string | null
+          status: string
+          stripe_payment_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          detail?: string | null
+          status?: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          detail?: string | null
+          status?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

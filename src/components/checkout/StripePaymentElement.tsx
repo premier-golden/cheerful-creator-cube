@@ -109,7 +109,9 @@ function PayForm({
   formRef: RefObject<HTMLFormElement | null>;
   validate?: CheckoutValidator | undefined;
   orderSummary?: ReactNode;
-  onPaid?: (() => void) | undefined;
+  onPaid?:
+    | ((paymentIntentId: string | null) => void)
+    | undefined;
   onProcessing?: (() => void) | undefined;
 }) {
   const stripe = useStripe();
@@ -395,7 +397,7 @@ function PayForm({
 
       if (status === "succeeded") {
         /* The checkout page records payment_succeeded. */
-        onPaid?.();
+        onPaid?.(paymentIntentId);
         return;
       }
 
@@ -592,7 +594,7 @@ export function StripePaymentElement({
   formRef: RefObject<HTMLFormElement | null>;
   validate?: CheckoutValidator;
   orderSummary?: ReactNode;
-  onPaid?: () => void;
+  onPaid?: (paymentIntentId: string | null) => void;
   onProcessing?: () => void;
 }) {
   const createIntent = useServerFn(

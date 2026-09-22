@@ -26,7 +26,10 @@ import {
   getAttribution,
 } from "@/lib/attribution";
 import { recordCheckoutInitiation } from "@/lib/ic.functions";
-import { trackCheckout } from "@/lib/checkout-tracking";
+import {
+  intentIdFromSecret,
+  trackCheckout,
+} from "@/lib/checkout-tracking";
 import { getStripePaymentIntentStatus } from "@/lib/stripe.functions";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -369,7 +372,11 @@ function CheckoutPage() {
 
   const handlePaid =
     useCallback(
-      async () => {
+      async (
+        paymentIntentId:
+          | string
+          | null = null,
+      ) => {
         /*
          * CompletePayment must fire exactly once,
          * even if Stripe reports success twice
@@ -425,6 +432,12 @@ function CheckoutPage() {
             value("phone"),
           );
 
+          /*
+           * The event_id is the Stripe PaymentIntent id,
+           * exactly the same value the server-side
+           * Events API conversion uses, so TikTok
+           * deduplicates browser + server.
+           */
           tiktokTrack(
             "CompletePayment",
             {
@@ -434,6 +447,7 @@ function CheckoutPage() {
               contents:
                 tiktokContents,
             },
+            paymentIntentId ?? undefined,
           );
         } catch (
           trackingError
@@ -918,7 +932,11 @@ function CheckoutPage() {
           result.ok &&
           result.status === "succeeded"
         ) {
-          await handlePaid();
+          await handlePaid(
+            intentIdFromSecret(
+              returnedSecret,
+            ),
+          );
           return;
         }
 
