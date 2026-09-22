@@ -932,7 +932,11 @@ function CheckoutPage() {
           result.ok &&
           result.status === "succeeded"
         ) {
-          await handlePaid();
+          await handlePaid(
+            intentIdFromSecret(
+              returnedSecret,
+            ),
+          );
           return;
         }
 
