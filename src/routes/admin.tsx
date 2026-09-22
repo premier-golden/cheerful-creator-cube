@@ -167,7 +167,9 @@ function AdminPage() {
         const result = await fetchRows({
           data: {
             password,
-            limit: 100,
+            limit: 200,
+            startIso,
+            endIso,
             ...(campaign ? { campaign } : {}),
           },
         });
