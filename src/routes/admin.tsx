@@ -54,6 +54,74 @@ function when(iso: string) {
   return new Date(iso).toLocaleString("en-GB", { timeZone: "UTC" });
 }
 
+/*
+ * Period filter. The dashboard reference timezone is
+ * America/Sao_Paulo (fixed UTC-03:00, no DST since 2019),
+ * so day boundaries are built with that offset and sent
+ * to the server as absolute UTC instants.
+ */
+const SP_OFFSET = "-03:00";
+const PERIODS = ["today", "yesterday", "last7", "last30", "custom"] as const;
+type Period = (typeof PERIODS)[number];
+
+const PERIOD_LABELS: Record<Period, string> = {
+  today: "Today",
+  yesterday: "Yesterday",
+  last7: "Last 7 days",
+  last30: "Last 30 days",
+  custom: "Custom",
+};
+
+/** Current calendar date in Sao Paulo, as YYYY-MM-DD. */
+function spToday() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function shiftDay(date: string, days: number) {
+  const base = new Date(`${date}T12:00:00${SP_OFFSET}`);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function dayStartIso(date: string) {
+  return new Date(`${date}T00:00:00.000${SP_OFFSET}`).toISOString();
+}
+
+function dayEndIso(date: string) {
+  return new Date(`${date}T23:59:59.999${SP_OFFSET}`).toISOString();
+}
+
+function resolveRange(period: Period, customFrom: string, customTo: string) {
+  const today = spToday();
+  switch (period) {
+    case "today":
+      return { from: today, to: today };
+    case "yesterday": {
+      const y = shiftDay(today, -1);
+      return { from: y, to: y };
+    }
+    case "last7":
+      return { from: shiftDay(today, -6), to: today };
+    case "last30":
+      return { from: shiftDay(today, -29), to: today };
+    case "custom": {
+      const from = customFrom || today;
+      const to = customTo || today;
+      return from <= to ? { from, to } : { from: to, to: from };
+    }
+  }
+}
+
+function prettyDay(date: string) {
+  const [y, m, d] = date.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 function AdminPage() {
   const fetchRows = useServerFn(listSaleAttributions);
 
