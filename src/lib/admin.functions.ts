@@ -152,11 +152,15 @@ export const listSaleAttributions = createServerFn({ method: "POST" })
      * Checkout funnel / errors. Read-only aggregation
      * of already-collected events; nothing is written.
      */
-    const { data: eventRows, error: eventError } = await supabaseAdmin
+    let eventsQuery = supabaseAdmin
       .from("checkout_events")
       .select(
         "checkout_session_id, event, error_code, utm_campaign, utm_source, utm_medium",
-      )
+      );
+    if (startIso) eventsQuery = eventsQuery.gte("created_at", startIso);
+    if (endIso) eventsQuery = eventsQuery.lte("created_at", endIso);
+
+    const { data: eventRows, error: eventError } = await eventsQuery
       .order("created_at", { ascending: false })
       .limit(20000);
 
