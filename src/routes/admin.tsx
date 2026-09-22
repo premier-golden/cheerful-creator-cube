@@ -137,6 +137,16 @@ function AdminPage() {
   const [funnelErrors, setFunnelErrors] = useState<Array<FunnelErrorRow>>([]);
   const [campaigns, setCampaigns] = useState<Array<string>>([]);
   const [campaign, setCampaign] = useState("");
+  const [period, setPeriod] = useState<Period>("today");
+  const [customFrom, setCustomFrom] = useState(() => spToday());
+  const [customTo, setCustomTo] = useState(() => spToday());
+
+  const range = useMemo(
+    () => resolveRange(period, customFrom, customTo),
+    [period, customFrom, customTo],
+  );
+  const startIso = useMemo(() => dayStartIso(range.from), [range.from]);
+  const endIso = useMemo(() => dayEndIso(range.to), [range.to]);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
