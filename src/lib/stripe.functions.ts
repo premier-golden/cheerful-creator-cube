@@ -808,6 +808,35 @@ export const updateStripePaymentIntent =
         /* IP is optional at this layer. */
       }
 
+      /*
+       * TikTok matching signals (no personal data):
+       * the pixel cookie and the buyer user agent, so
+       * the server-side conversion can be attributed
+       * to the original ad click.
+       */
+      try {
+        const ttp = getCookie("_ttp");
+
+        if (ttp) {
+          form.set(
+            "metadata[ttp]",
+            ttp.slice(0, 120),
+          );
+        }
+
+        const userAgent =
+          getRequestHeader("user-agent");
+
+        if (userAgent) {
+          form.set(
+            "metadata[customer_ua]",
+            userAgent.slice(0, 350),
+          );
+        }
+      } catch {
+        /* Matching signals are optional. */
+      }
+
       for (const key of ATTRIBUTION_METADATA_KEYS) {
         const value =
           data.attribution[key];
