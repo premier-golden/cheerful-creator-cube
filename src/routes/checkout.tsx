@@ -369,7 +369,11 @@ function CheckoutPage() {
 
   const handlePaid =
     useCallback(
-      async () => {
+      async (
+        paymentIntentId:
+          | string
+          | null = null,
+      ) => {
         /*
          * CompletePayment must fire exactly once,
          * even if Stripe reports success twice
