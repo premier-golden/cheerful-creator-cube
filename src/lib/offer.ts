@@ -67,9 +67,9 @@ export const BUNDLES: Bundle[] = [
     id: "3",
     image: `${CDN}/3_pack_1.png?v=1775710196&width=300`,
     title: "3 Packs",
-    perPack: "£8.33 per pack",
+    perPack: "£14.98 per pack",
     supply: "3 months supply",
-    price: "£24.99",
+    price: "£44.96",
     compare: "£50.97",
     badge: "Free Gift 🎁",
     gifts: [
@@ -88,9 +88,9 @@ export const BUNDLES: Bundle[] = [
     id: "6",
     image: `${CDN}/6_pack_1.png?v=1775710196&width=300`,
     title: "6 Packs",
-    perPack: "£7.17 per pack",
+    perPack: "£13.98 per pack",
     supply: "6 months supply",
-    price: "£42.99",
+    price: "£83.93",
     compare: "£101.94",
     badge: "Free Gift 🎁",
     gifts: [
