@@ -27,10 +27,10 @@ import {
 } from "@/lib/attribution";
 import { recordCheckoutInitiation } from "@/lib/ic.functions";
 import {
-  intentIdFromSecret,
+
   trackCheckout,
 } from "@/lib/checkout-tracking";
-import { getStripePaymentIntentStatus } from "@/lib/stripe.functions";
+import { getWhopPaymentStatus } from "@/lib/whop.functions";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
@@ -45,7 +45,10 @@ import {
 import logoAsset from "@/assets/nutrition-geeks-logo.png.asset.json";
 
 import { CheckoutSummary } from "@/components/checkout/CheckoutSummary";
-import { StripePaymentElement } from "@/components/checkout/StripePaymentElement";
+import {
+  WHOP_RETURN_PARAM,
+  WhopPaymentElement,
+} from "@/components/checkout/WhopPaymentElement";
 import { AddressAutocomplete } from "@/components/checkout/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
 
@@ -888,9 +891,9 @@ function CheckoutPage() {
    * the buyer back here with the client secret in the
    * URL. Only Stripe can confirm the real status.
    */
-  const readIntentStatus =
+  const readWhopStatus =
     useServerFn(
-      getStripePaymentIntentStatus,
+      getWhopPaymentStatus,
     );
 
   const returnHandledRef =
@@ -906,12 +909,13 @@ function CheckoutPage() {
         window.location.search,
       );
 
-    const returnedSecret =
-      params.get(
-        "payment_intent_client_secret",
-      );
+    const returnedId =
+      params.get(WHOP_RETURN_PARAM);
 
-    if (!returnedSecret) {
+    if (
+      !returnedId ||
+      !/^pay_[A-Za-z0-9_]+$/.test(returnedId)
+    ) {
       return;
     }
 
@@ -920,30 +924,18 @@ function CheckoutPage() {
 
     void (async () => {
       try {
+        /* Only the server-side status is trusted. */
         const result =
-          await readIntentStatus({
-            data: {
-              clientSecret:
-                returnedSecret,
-            },
+          await readWhopStatus({
+            data: { paymentId: returnedId },
           });
 
-        if (
-          result.ok &&
-          result.status === "succeeded"
-        ) {
-          await handlePaid(
-            intentIdFromSecret(
-              returnedSecret,
-            ),
-          );
+        if (result.ok && result.status === "succeeded") {
+          await handlePaid(returnedId);
           return;
         }
 
-        if (
-          result.ok &&
-          result.status === "processing"
-        ) {
+        if (result.ok && result.status === "pending") {
           handleProcessing();
           return;
         }
@@ -954,19 +946,15 @@ function CheckoutPage() {
           pack: bundle.id,
           errorCode: result.ok
             ? "authentication_not_completed"
-            : "intent_status_unavailable",
+            : "payment_status_unavailable",
         });
 
         setError(
-          result.ok
-            ? "The authentication was not completed, so the payment did not go through. Please try again."
-            : result.error,
+          "The authentication was not completed, so the payment did not go through. Please try again.",
         );
       } catch (err) {
         console.error(err);
-
         setStatus("idle");
-
         setError(
           "We couldn't confirm your payment status. Please try again.",
         );
@@ -1381,7 +1369,7 @@ function CheckoutPage() {
                 </div>
               ) : (
                 <>
-                  <StripePaymentElement
+                  <WhopPaymentElement
                     pack={pack}
                     shipping={
                       shipping?.id ??
