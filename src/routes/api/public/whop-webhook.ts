@@ -40,7 +40,7 @@ function safeEqual(a: string, b: string): boolean {
 async function hmacB64(key: Uint8Array, message: string): Promise<string> {
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
-    key,
+    key as BufferSource,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -59,7 +59,7 @@ async function hmacB64(key: Uint8Array, message: string): Promise<string> {
  * part after the prefix. Both derive solely from our secret.
  */
 function candidateKeys(secret: string): Uint8Array[] {
-  const keys = [new TextEncoder().encode(secret)];
+  const keys: Uint8Array[] = [new TextEncoder().encode(secret)];
   const stripped = secret.replace(/^(ws_|whsec_)/, "");
   const decoded = b64ToBytes(stripped);
   if (decoded && decoded.length > 0) keys.push(decoded);
