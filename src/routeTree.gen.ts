@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ApiWhopTestRouteImport } from './routes/api/whop-test'
 import { Route as ApiPublicUtmifyStripeRouteImport } from './routes/api/public/utmify-stripe'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWhopTestRoute = ApiWhopTestRouteImport.update({
+  id: '/api/whop-test',
+  path: '/api/whop-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicUtmifyStripeRoute = ApiPublicUtmifyStripeRouteImport.update({
   id: '/api/public/utmify-stripe',
   path: '/api/public/utmify-stripe',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/api/whop-test': typeof ApiWhopTestRoute
   '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/api/whop-test': typeof ApiWhopTestRoute
   '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,38 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/api/whop-test': typeof ApiWhopTestRoute
   '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/checkout' | '/api/public/utmify-stripe'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/checkout'
+    | '/api/whop-test'
+    | '/api/public/utmify-stripe'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/checkout' | '/api/public/utmify-stripe'
-  id: '__root__' | '/' | '/admin' | '/checkout' | '/api/public/utmify-stripe'
+  to:
+    | '/'
+    | '/admin'
+    | '/checkout'
+    | '/api/whop-test'
+    | '/api/public/utmify-stripe'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/checkout'
+    | '/api/whop-test'
+    | '/api/public/utmify-stripe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   CheckoutRoute: typeof CheckoutRoute
+  ApiWhopTestRoute: typeof ApiWhopTestRoute
   ApiPublicUtmifyStripeRoute: typeof ApiPublicUtmifyStripeRoute
 }
 
@@ -92,6 +118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/whop-test': {
+      id: '/api/whop-test'
+      path: '/api/whop-test'
+      fullPath: '/api/whop-test'
+      preLoaderRoute: typeof ApiWhopTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/utmify-stripe': {
       id: '/api/public/utmify-stripe'
       path: '/api/public/utmify-stripe'
@@ -106,6 +139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   CheckoutRoute: CheckoutRoute,
+  ApiWhopTestRoute: ApiWhopTestRoute,
   ApiPublicUtmifyStripeRoute: ApiPublicUtmifyStripeRoute,
 }
 export const routeTree = rootRouteImport
