@@ -330,7 +330,7 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
         const accountId = process.env["WHOP_COMPANY_ID"];
         if (!secret || !apiKey || !accountId) {
           console.error("Whop webhook is not configured");
-          return new Response("not configured", { status: 500 });
+          return new Response("not configured", { status: 503 });
         }
 
         const id = request.headers.get("webhook-id") ?? "";
