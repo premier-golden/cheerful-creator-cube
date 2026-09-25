@@ -10,3 +10,5 @@
 <!-- LOVABLE:END -->
 
 - Payments go through Whop Elements (src/components/checkout/WhopPaymentElement.tsx) + src/lib/whop.functions.ts; browser sends only pack/shipping ids and a ctok_, server prices from offer.ts and creates an inline plan. Why: price can never be set by the browser.
+
+- Whop post-payment runs in src/routes/api/public/whop-webhook.ts (Standard Webhooks signature, re-fetch payment, per-step claims on whop_payments). Why: retries must only finish missing steps, never duplicate orders or conversions.
