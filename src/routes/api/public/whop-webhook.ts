@@ -365,13 +365,29 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
 
         const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
 
+        /*
+         * Whop "Send Test Event" fixture. Whop sends no explicit test flag, so we
+         * match ONLY the literal placeholder id (pay_ + exactly 14 "x"). Reached
+         * only after signature + timestamp checks. Real unknown ids still 500.
+         */
+        const isTestFixture = paymentId === "pay_xxxxxxxxxxxxxx";
+
         /* Diagnostic log of the delivery (duplicates are harmless). */
         await db
           .from("whop_webhook_events" as never)
-          .upsert({ webhook_id: id, event_type: type, payment_id: paymentId } as never, {
-            onConflict: "webhook_id",
-            ignoreDuplicates: true,
-          });
+          .upsert(
+            {
+              webhook_id: id,
+              event_type: isTestFixture ? `${type} [test_event=true status=ignored_test_fixture]` : type,
+              payment_id: paymentId,
+            } as never,
+            { onConflict: "webhook_id", ignoreDuplicates: true },
+          );
+
+        if (isTestFixture) {
+          console.log("Whop test fixture ignored", { webhookId: id, type });
+          return new Response("ok (test event ignored)");
+        }
 
         /* Reserve the payment row atomically (primary key = payment id). */
         await db
