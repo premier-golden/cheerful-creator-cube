@@ -323,6 +323,81 @@ export type Database = {
         }
         Relationships: []
       }
+      whop_payments: {
+        Row: {
+          amount_cents: number | null
+          attribution_status: string
+          created_at: string
+          currency: string | null
+          last_event_type: string | null
+          pack: string | null
+          payment_id: string
+          processed_at: string | null
+          shipping: string | null
+          shopify_order_id: string | null
+          shopify_status: string
+          status: string
+          tiktok_status: string
+          updated_at: string
+          utmify_status: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          attribution_status?: string
+          created_at?: string
+          currency?: string | null
+          last_event_type?: string | null
+          pack?: string | null
+          payment_id: string
+          processed_at?: string | null
+          shipping?: string | null
+          shopify_order_id?: string | null
+          shopify_status?: string
+          status?: string
+          tiktok_status?: string
+          updated_at?: string
+          utmify_status?: string
+        }
+        Update: {
+          amount_cents?: number | null
+          attribution_status?: string
+          created_at?: string
+          currency?: string | null
+          last_event_type?: string | null
+          pack?: string | null
+          payment_id?: string
+          processed_at?: string | null
+          shipping?: string | null
+          shopify_order_id?: string | null
+          shopify_status?: string
+          status?: string
+          tiktok_status?: string
+          updated_at?: string
+          utmify_status?: string
+        }
+        Relationships: []
+      }
+      whop_webhook_events: {
+        Row: {
+          created_at: string
+          event_type: string | null
+          payment_id: string | null
+          webhook_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type?: string | null
+          payment_id?: string | null
+          webhook_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string | null
+          payment_id?: string | null
+          webhook_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
