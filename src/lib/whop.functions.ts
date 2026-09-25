@@ -1,4 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import {
+  getCookie,
+  getRequestHeader,
+  getRequestIP,
+} from "@tanstack/react-start/server";
 import { z } from "zod";
 
 import {
@@ -157,6 +162,18 @@ export const createWhopPayment = createServerFn({ method: "POST" })
     for (const key of ATTRIBUTION_KEYS) {
       const value = data.attribution[key];
       if (value) metadata[key] = value.slice(0, 250);
+    }
+
+    /* Matching signals for the server-side conversions (webhook). */
+    try {
+      const ttp = getCookie("_ttp");
+      if (ttp) metadata["ttp"] = ttp.slice(0, 120);
+      const ua = getRequestHeader("user-agent");
+      if (ua) metadata["customer_ua"] = ua.slice(0, 350);
+      const ip = getRequestIP({ xForwardedFor: true });
+      if (ip) metadata["customer_ip"] = ip.slice(0, 64);
+    } catch {
+      /* Never block the payment on tracking signals. */
     }
 
     const body = {
