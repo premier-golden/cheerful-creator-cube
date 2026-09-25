@@ -4,6 +4,7 @@ import {
   CardElement,
   Payments,
   usePayments,
+  useWhop,
   WhopElements,
 } from "@whop/elements-react";
 import { useHydrated } from "@tanstack/react-router";
@@ -85,6 +86,7 @@ function PayForm({
   onProcessing,
 }: PayProps) {
   const payments = usePayments();
+  const whop = useWhop();
   const createPayment = useServerFn(createWhopPayment);
   const readStatus = useServerFn(getWhopPaymentStatus);
 
@@ -243,14 +245,14 @@ function PayForm({
       if (finish(created.status, created.paymentId)) return;
 
       /* 3DS / SCA or any other pending buyer step. */
-      if (created.clientSecret) {
+      if (created.clientSecret && whop) {
         track("payment_requires_action", { errorCode: "authentication_required" });
 
         const url = new URL(window.location.href);
         url.hash = "";
         url.searchParams.set(WHOP_RETURN_PARAM, created.paymentId);
 
-        const next = await payments.handleNextAction({
+        const next = await whop!.payments.handleNextAction({
           clientSecret: created.clientSecret,
           returnUrl: url.toString(),
         });

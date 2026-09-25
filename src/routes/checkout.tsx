@@ -27,7 +27,7 @@ import {
 } from "@/lib/attribution";
 import { recordCheckoutInitiation } from "@/lib/ic.functions";
 import {
-  intentIdFromSecret,
+
   trackCheckout,
 } from "@/lib/checkout-tracking";
 import { getWhopPaymentStatus } from "@/lib/whop.functions";
