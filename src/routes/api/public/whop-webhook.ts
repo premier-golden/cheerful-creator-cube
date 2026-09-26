@@ -160,7 +160,97 @@ async function fetchPayment(apiKey: string, id: string): Promise<WhopPayment | n
   return (await res.json()) as WhopPayment;
 }
 
-async function processSucceeded(db: Admin, payment: WhopPayment): Promise<void> {
+/** Expected total in pence from the central offer (same math as checkout). */
+function expectedPence(pack: string | undefined, shipping: string | undefined): number | null {
+  const bundle = BUNDLES.find((b) => b.id === pack);
+  const method = getShippingMethod(shipping ?? null);
+  if (!bundle || !method) return null;
+  return Math.round(parseAmount(bundle.price) * 100) + Math.round(method.amount * 100);
+}
+
+/** Shopify stage claim: also picks up rows parked before the bridge existed. */
+async function claimShopify(db: Admin, paymentId: string): Promise<boolean> {
+  const { data } = await db
+    .from("whop_payments" as never)
+    .update({ shopify_status: "sending", updated_at: new Date().toISOString() } as never)
+    .eq("payment_id", paymentId)
+    .in("shopify_status", ["pending", "failed", "awaiting_integration"])
+    .select("payment_id");
+  return Array.isArray(data) && data.length > 0;
+}
+
+type BridgeResult = { status: string; orderId?: string; orderName?: string };
+
+/**
+ * Calls the shopify-bridge. The secret is read here (server only) and never
+ * logged or returned. "done" = created/existing/recovered; "failed" =
+ * retryable (Whop will redeliver); "rejected:<code>" = permanent, no retry.
+ */
+async function sendToShopifyBridge(
+  payment: WhopPayment,
+  m: Record<string, string>,
+  amountCents: number,
+  email: string,
+  webhookId: string,
+): Promise<BridgeResult> {
+  const secret = process.env["SHOPIFY_BRIDGE_SECRET"];
+  const ref = (payment.id ?? "").slice(-6);
+  if (!secret) {
+    console.error("Shopify bridge secret missing", { ref });
+    return { status: "failed" };
+  }
+  const fullName = (m["customer_name"] ?? "").trim();
+  const [first, ...rest] = fullName.split(/\s+/).filter(Boolean);
+  const firstName = first ?? "Customer";
+  const lastName = rest.join(" ") || firstName;
+
+  try {
+    const res = await fetch(SHOPIFY_BRIDGE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Shopify-Bridge-Secret": secret },
+      body: JSON.stringify({
+        whopPaymentId: payment.id,
+        whopWebhookEventId: webhookId,
+        pack: m["pack"],
+        shipping: m["shipping"],
+        amount: amountCents,
+        currency: "GBP",
+        customer: { email, firstName, lastName, phone: m["customer_phone"] || undefined },
+        shippingAddress: {
+          address1: m["ship_street"] ?? "",
+          address2: m["ship_apartment"] ?? "",
+          city: m["ship_city"] ?? "",
+          postalCode: m["ship_postcode"] ?? "",
+          countryCode: "GB",
+        },
+      }),
+      signal: AbortSignal.timeout(25000),
+    });
+    const data = (await res.json().catch(() => null)) as {
+      ok?: boolean;
+      retryable?: boolean;
+      shopifyOrderId?: string;
+      shopifyOrderName?: string;
+    } | null;
+    if (res.ok && data?.ok && data.shopifyOrderId) {
+      console.log("Shopify order confirmed", { ref });
+      return { status: "done", orderId: data.shopifyOrderId, orderName: data.shopifyOrderName };
+    }
+    const retryable = res.status >= 500 || res.status === 401 || res.status === 503 || data?.retryable === true;
+    console.error("Shopify bridge did not confirm order", { ref, status: res.status, retryable });
+    return { status: retryable ? "failed" : `rejected:${res.status}` };
+  } catch {
+    /* Network/timeout: the bridge looks up by whopPaymentId first on retry. */
+    console.error("Shopify bridge unreachable", { ref });
+    return { status: "failed" };
+  }
+}
+
+async function processSucceeded(
+  db: Admin,
+  payment: WhopPayment,
+  webhookId: string,
+): Promise<{ shopifyRetry: boolean }> {
   const paymentId = payment.id!;
   const m = meta(payment);
   const currency = (payment.currency ?? "gbp").toUpperCase();
@@ -180,16 +270,20 @@ async function processSucceeded(db: Admin, payment: WhopPayment): Promise<void> 
   });
 
   /*
-   * 1. Shopify. The existing Shopify order creation lives in the
-   * Stripe-era backend function outside this codebase, so it is not
-   * wired yet. The status stays "awaiting_integration" and is never
-   * claimed, so it can be completed later without duplicates.
+   * 1. Shopify via the Supabase shopify-bridge (server-to-server).
+   * Own atomic claim; the bridge itself is idempotent by whopPaymentId.
+   * Returns true when Whop should redeliver (retryable Shopify failure).
    */
-  await db
-    .from("whop_payments" as never)
-    .update({ shopify_status: "awaiting_integration" } as never)
-    .eq("payment_id", paymentId)
-    .eq("shopify_status", "pending");
+  let shopifyRetry = false;
+  if (await claimShopify(db, paymentId)) {
+    const status = await sendToShopifyBridge(payment, m, amountCents, email, webhookId);
+    await mark(db, paymentId, {
+      shopify_status: status.status,
+      ...(status.orderId ? { shopify_order_id: status.orderId } : {}),
+      ...(status.orderName ? { shopify_order_name: status.orderName } : {}),
+    });
+    shopifyRetry = status.status === "failed";
+  }
 
   /* 2. Admin dashboard attribution (same table the panel reads). */
   if (await claim(db, paymentId, "attribution_status")) {
