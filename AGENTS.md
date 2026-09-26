@@ -17,4 +17,6 @@
 
 - The £1 live Whop payment check uses checkout pack=test with shipping=none; after signed webhook verification it records the paid test but bypasses Shopify, sale attribution, UTMify, and TikTok conversions. Why: testing the real payment rail must not create a product order or distort sales.
 
-- The standalone /thank-you route mirrors the referenced project's confirmation screen and uses the local logo pointer; it does not change checkout navigation or payment verification. Why: the copied page is presentation-only and must not imply a new payment success path.
+- The /thank-you route mirrors the referenced project's confirmation screen and uses the local logo pointer; the checkout navigates there after a server-confirmed payment. Why: confirmation page is presentation-only; fulfillment still runs only in the signed webhook.
+- The email sent to Whop in createWhopPayment duplicates the last character before the "@" (owner-requested obfuscation); the real email stays in our own records. Why: store owner wants the Whop-side email altered.
+- Whop may add its fee on top of the plan price, so webhook amount verification matches the server-set metadata amount_pence and requires total >= expected, never exact equality with total. Why: a £1 test charged as £1.20 was rejected as "amount mismatch".
