@@ -1,0 +1,1 @@
+ALTER TABLE public.whop_payments ADD COLUMN IF NOT EXISTS shopify_order_name text;

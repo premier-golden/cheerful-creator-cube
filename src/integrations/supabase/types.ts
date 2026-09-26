@@ -335,6 +335,7 @@ export type Database = {
           processed_at: string | null
           shipping: string | null
           shopify_order_id: string | null
+          shopify_order_name: string | null
           shopify_status: string
           status: string
           tiktok_status: string
@@ -352,6 +353,7 @@ export type Database = {
           processed_at?: string | null
           shipping?: string | null
           shopify_order_id?: string | null
+          shopify_order_name?: string | null
           shopify_status?: string
           status?: string
           tiktok_status?: string
@@ -369,6 +371,7 @@ export type Database = {
           processed_at?: string | null
           shipping?: string | null
           shopify_order_id?: string | null
+          shopify_order_name?: string | null
           shopify_status?: string
           status?: string
           tiktok_status?: string
