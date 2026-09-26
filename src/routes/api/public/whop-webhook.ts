@@ -181,7 +181,7 @@ async function claimShopify(db: Admin, paymentId: string): Promise<boolean> {
   return Array.isArray(data) && data.length > 0;
 }
 
-type BridgeResult = { status: string; orderId?: string; orderName?: string };
+type BridgeResult = { status: string; orderId?: string | undefined; orderName?: string | undefined };
 
 /**
  * Calls the shopify-bridge. The secret is read here (server only) and never
