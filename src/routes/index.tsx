@@ -476,6 +476,7 @@ function ProductPage() {
               </a>
             </div>
 
+            <ThirdPartyTested />
 
             <div className="mt-7 divide-y divide-border border-y border-border">
               <AccordionItem
