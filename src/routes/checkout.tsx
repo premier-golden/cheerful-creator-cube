@@ -37,6 +37,7 @@ import {
   getBundle,
   DEFAULT_BUNDLE_ID,
   SHIPPING_METHODS,
+  TEST_SHIPPING,
   isValidUkPostcode,
   formatAmount,
   parseAmount,
@@ -176,6 +177,7 @@ function CheckoutPage() {
 
   const bundle =
     getBundle(pack);
+  const isPaymentTest = bundle.id === "test";
 
   const formRef =
     useRef<HTMLFormElement>(
@@ -247,7 +249,7 @@ function CheckoutPage() {
     );
 
   const shipping =
-    (postcodeValid &&
+    (isPaymentTest ? TEST_SHIPPING : postcodeValid &&
       SHIPPING_METHODS.find(
         (method) =>
           method.id ===
@@ -310,6 +312,7 @@ function CheckoutPage() {
     initiatedRef.current =
       true;
 
+    if (isPaymentTest) return;
     tiktokTrack(
       "InitiateCheckout",
       {
@@ -348,7 +351,7 @@ function CheckoutPage() {
    * TikTok attribution matching.
    */
   useEffect(() => {
-    if (emailValid) {
+    if (emailValid && !isPaymentTest) {
       tiktokIdentify(
         email,
       );
@@ -356,6 +359,7 @@ function CheckoutPage() {
   }, [
     email,
     emailValid,
+    isPaymentTest,
   ]);
 
   /**
@@ -430,10 +434,11 @@ function CheckoutPage() {
          * register or fulfill an order.
          */
         try {
-          tiktokIdentify(
-            value("email"),
-            value("phone"),
-          );
+          if (!isPaymentTest) {
+            tiktokIdentify(
+              value("email"),
+              value("phone"),
+            );
 
           /*
            * The event_id is the Stripe PaymentIntent id,
@@ -441,7 +446,7 @@ function CheckoutPage() {
            * Events API conversion uses, so TikTok
            * deduplicates browser + server.
            */
-          tiktokTrack(
+            tiktokTrack(
             "CompletePayment",
             {
               value:
@@ -451,7 +456,8 @@ function CheckoutPage() {
                 tiktokContents,
             },
             paymentIntentId ?? undefined,
-          );
+            );
+          }
         } catch (
           trackingError
         ) {
@@ -483,6 +489,7 @@ function CheckoutPage() {
       [
         orderTotal,
         tiktokContents,
+        isPaymentTest,
       ],
     );
 
@@ -869,7 +876,7 @@ function CheckoutPage() {
    * buyer can still switch to Express at any time.
    */
   useEffect(() => {
-    if (!postcodeValid) return;
+    if (!postcodeValid || isPaymentTest) return;
 
     if (shippingId === null) {
       setShippingId("standard");
@@ -880,7 +887,7 @@ function CheckoutPage() {
         shipping: "standard",
       });
     }
-  }, [postcodeValid, shippingId, bundle.id]);
+  }, [postcodeValid, shippingId, bundle.id, isPaymentTest]);
 
   /*
    * ----------------------------------------------
@@ -1006,6 +1013,13 @@ function CheckoutPage() {
         </div>
       </header>
 
+      {isPaymentTest && (
+        <div className="border-b border-co-border bg-co-surface px-[14px] py-3 text-center text-sm text-co-fg">
+          £1 live payment test · no product or shipping ·{" "}
+          <Link to="/checkout" search={{ pack: DEFAULT_BUNDLE_ID }} className="font-semibold underline underline-offset-2">Return to regular checkout</Link>
+        </div>
+      )}
+
       <section className="border-b border-co-border bg-co-surface lg:hidden">
         <Button
           type="button"
@@ -1086,7 +1100,7 @@ function CheckoutPage() {
             {/* Delivery */}
             <section className="mt-9">
               <SectionTitle>
-                Delivery
+                {isPaymentTest ? "Billing details" : "Delivery"}
               </SectionTitle>
 
               <div className="space-y-3">
@@ -1212,7 +1226,9 @@ function CheckoutPage() {
             <section className="mt-9">
               <h2 className="mb-3 text-base font-bold text-co-fg">Shipping method</h2>
 
-              {postcodeValid ? (
+              {isPaymentTest ? (
+                <p className="rounded-lg border border-co-border bg-co-surface px-3.5 py-4 text-sm text-co-fg">No shipping — £0.00</p>
+              ) : postcodeValid ? (
                 <div
                   role="radiogroup"
                   aria-label="Shipping method"

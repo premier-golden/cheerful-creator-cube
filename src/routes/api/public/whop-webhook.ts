@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BUNDLES, getShippingMethod, parseAmount } from "@/lib/offer";
+import { BUNDLES, getShippingMethod, parseAmount, TEST_BUNDLE } from "@/lib/offer";
 
 /**
  * Whop webhook receiver (replaces the Stripe post-payment trigger).
@@ -164,6 +164,7 @@ async function fetchPayment(apiKey: string, id: string): Promise<WhopPayment | n
 
 /** Expected total in pence from the central offer (same math as checkout). */
 function expectedPence(pack: string | undefined, shipping: string | undefined): number | null {
+  if (pack === TEST_BUNDLE.id) return shipping === "none" ? 100 : null;
   const bundle = BUNDLES.find((b) => b.id === pack);
   const method = getShippingMethod(shipping ?? null);
   if (!bundle || !method) return null;
@@ -536,6 +537,15 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
         if (expected === null || paidPence !== expected) {
           console.warn("Whop payment amount mismatch", { paymentId, paidPence, expected });
           return new Response("ignored");
+        }
+
+        /* A verified £1 test is a real payment, but never a product sale. */
+        if (pm["pack"] === TEST_BUNDLE.id) {
+          await db.from("whop_payments" as never)
+            .update({ status: "succeeded", pack: "test", shipping: "none", amount_cents: 100, currency: "GBP", shopify_status: "ignored_test_payment", attribution_status: "ignored_test_payment", utmify_status: "ignored_test_payment", tiktok_status: "ignored_test_payment", updated_at: new Date().toISOString() } as never)
+            .eq("payment_id", paymentId);
+          console.log("Whop £1 payment test confirmed", { paymentId });
+          return new Response("ok (payment test recorded)");
         }
 
         let result: { shopifyRetry: boolean };

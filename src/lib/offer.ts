@@ -111,6 +111,21 @@ export const BUNDLES: Bundle[] = [
   },
 ];
 
+/** Separate £1 live payment check; never listed among the storefront packs. */
+export const TEST_BUNDLE: Bundle = {
+  id: "test",
+  image: BUNDLES[0]!.image,
+  title: "£1 Payment Test",
+  perPack: "£1 test payment",
+  supply: "Payment test only",
+  price: "£1.00",
+  compare: "£1.00",
+  gifts: [],
+  productName: "£1 Payment Test",
+  quantity: 1,
+  variant: "No product or delivery",
+};
+
 export const DEFAULT_BUNDLE_ID = BUNDLES[0]!.id;
 
 /**
@@ -150,6 +165,13 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
   },
 ];
 
+export const TEST_SHIPPING: ShippingMethod = {
+  id: "none",
+  label: "No shipping (payment test)",
+  description: "No product will be shipped",
+  amount: 0,
+};
+
 /**
  * Basic UK postcode validation
  * (e.g. "SW1A 1AA", "M1 1AE").
@@ -159,6 +181,7 @@ export function isValidUkPostcode(value: string): boolean {
 }
 
 export function getBundle(id?: string | null): Bundle {
+  if (id === TEST_BUNDLE.id) return TEST_BUNDLE;
   return BUNDLES.find((b) => b.id === id) ?? BUNDLES[0]!;
 }
 
@@ -167,6 +190,7 @@ export function getBundle(id?: string | null): Bundle {
  * (null when none/unknown is selected).
  */
 export function getShippingMethod(id?: string | null): ShippingMethod | null {
+  if (id === TEST_SHIPPING.id) return TEST_SHIPPING;
   return SHIPPING_METHODS.find((m) => m.id === id) ?? null;
 }
 

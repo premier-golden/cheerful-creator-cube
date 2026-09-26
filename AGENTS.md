@@ -14,3 +14,5 @@
 - Whop post-payment runs in src/routes/api/public/whop-webhook.ts (Standard Webhooks signature, re-fetch payment, per-step claims on whop_payments). Why: retries must only finish missing steps, never duplicate orders or conversions.
 
 - Shopify orders are created only by the Supabase Edge Function shopify-bridge (idempotent by whopPaymentId), called server-to-server from whop-webhook with X-Shopify-Bridge-Secret. Why: Shopify credentials live only in Supabase.
+
+- The £1 live Whop payment check uses checkout pack=test with shipping=none; after signed webhook verification it records the paid test but bypasses Shopify, sale attribution, UTMify, and TikTok conversions. Why: testing the real payment rail must not create a product order or distort sales.
