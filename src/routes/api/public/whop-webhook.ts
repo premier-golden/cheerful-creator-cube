@@ -542,7 +542,7 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
         /* A verified £1 test is a real payment, but never a product sale. */
         if (pm["pack"] === TEST_BUNDLE.id) {
           await db.from("whop_payments" as never)
-            .update({ status: "test_paid", pack: "test", shipping: "none", amount_cents: 100, currency: "GBP", updated_at: new Date().toISOString() } as never)
+            .update({ status: "succeeded", pack: "test", shipping: "none", amount_cents: 100, currency: "GBP", shopify_status: "ignored_test_payment", attribution_status: "ignored_test_payment", utmify_status: "ignored_test_payment", tiktok_status: "ignored_test_payment", updated_at: new Date().toISOString() } as never)
             .eq("payment_id", paymentId);
           console.log("Whop £1 payment test confirmed", { paymentId });
           return new Response("ok (payment test recorded)");

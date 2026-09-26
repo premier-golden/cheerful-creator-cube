@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Add an isolated £1 Whop live payment test without shipping, Shopify fulfillment, or sales conversions
 - [x] Remove Cooud integration (component, server fn, proxy route, webhook)
 - [x] Replace checkout payment with Stripe Payment Element (own Stripe account keys)
 - [ ] Update secrets STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY (waiting on user values)

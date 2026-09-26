@@ -1013,6 +1013,17 @@ function CheckoutPage() {
         </div>
       </header>
 
+      <div className="border-b border-co-border bg-co-surface px-[14px] py-3 text-center text-sm text-co-fg">
+        {isPaymentTest ? (
+          <span>
+            £1 live payment test · no product or shipping ·{" "}
+            <Link to="/checkout" search={{ pack: DEFAULT_BUNDLE_ID }} className="font-semibold underline underline-offset-2">Return to regular checkout</Link>
+          </span>
+        ) : (
+          <Link to="/checkout" search={{ pack: "test" }} className="font-semibold underline underline-offset-2">Try a £1 payment test (no shipping)</Link>
+        )}
+      </div>
+
       <section className="border-b border-co-border bg-co-surface lg:hidden">
         <Button
           type="button"
@@ -1093,7 +1104,7 @@ function CheckoutPage() {
             {/* Delivery */}
             <section className="mt-9">
               <SectionTitle>
-                Delivery
+                {isPaymentTest ? "Billing details" : "Delivery"}
               </SectionTitle>
 
               <div className="space-y-3">
