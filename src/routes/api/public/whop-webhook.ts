@@ -415,6 +415,7 @@ async function processSucceeded(
   }
 
   await mark(db, paymentId, { processed_at: new Date().toISOString() });
+  return { shopifyRetry };
 }
 
 export const Route = createFileRoute("/api/public/whop-webhook")({
@@ -514,7 +515,12 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
 
         const owner = payment.company?.id ?? payment.account?.id;
         const paid = payment.status === "paid" || payment.substatus === "succeeded";
-        if ((owner && owner !== accountId) || !paid || (payment.currency ?? "").toLowerCase() !== "gbp") {
+        if (
+          payment.id !== paymentId ||
+          (owner && owner !== accountId) ||
+          !paid ||
+          (payment.currency ?? "").toLowerCase() !== "gbp"
+        ) {
           console.warn("Whop payment failed verification", {
             paymentId,
             status: payment.status,
@@ -523,10 +529,25 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
           return new Response("ignored");
         }
 
+        /* Amount must match the central price for the pack + shipping it claims. */
+        const pm = meta(payment);
+        const expected = expectedPence(pm["pack"], pm["shipping"]);
+        const paidPence = typeof payment.total === "number" ? Math.round(payment.total * 100) : null;
+        if (expected === null || paidPence !== expected) {
+          console.warn("Whop payment amount mismatch", { paymentId, paidPence, expected });
+          return new Response("ignored");
+        }
+
+        let result: { shopifyRetry: boolean };
         try {
-          await processSucceeded(db, payment);
+          result = await processSucceeded(db, payment, id);
         } catch {
           console.error("Whop fulfillment step failed", { paymentId });
+          return new Response("retry later", { status: 500 });
+        }
+
+        if (result.shopifyRetry) {
+          /* Only the Shopify stage is retried; other stages are already claimed/done. */
           return new Response("retry later", { status: 500 });
         }
 
