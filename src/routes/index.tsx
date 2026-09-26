@@ -22,6 +22,8 @@ export const Route = createFileRoute("/")({
           "All-natural, triple-filtered premium collagen powder with 12.6g of protein per serving. Mixes into hot drinks and food. Free gift when you spend £22+.",
       },
       { property: "og:title", content: "Collagen Glow Up Powder | Triple Filtered Collagen" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content:
