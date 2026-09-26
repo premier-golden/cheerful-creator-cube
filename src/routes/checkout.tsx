@@ -1013,16 +1013,12 @@ function CheckoutPage() {
         </div>
       </header>
 
-      <div className="border-b border-co-border bg-co-surface px-[14px] py-3 text-center text-sm text-co-fg">
-        {isPaymentTest ? (
-          <span>
-            £1 live payment test · no product or shipping ·{" "}
-            <Link to="/checkout" search={{ pack: DEFAULT_BUNDLE_ID }} className="font-semibold underline underline-offset-2">Return to regular checkout</Link>
-          </span>
-        ) : (
-          <Link to="/checkout" search={{ pack: "test" }} className="font-semibold underline underline-offset-2">Try a £1 payment test (no shipping)</Link>
-        )}
-      </div>
+      {isPaymentTest && (
+        <div className="border-b border-co-border bg-co-surface px-[14px] py-3 text-center text-sm text-co-fg">
+          £1 live payment test · no product or shipping ·{" "}
+          <Link to="/checkout" search={{ pack: DEFAULT_BUNDLE_ID }} className="font-semibold underline underline-offset-2">Return to regular checkout</Link>
+        </div>
+      )}
 
       <section className="border-b border-co-border bg-co-surface lg:hidden">
         <Button
