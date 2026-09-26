@@ -7,6 +7,7 @@ import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-rea
 import { Marquee } from "@/components/site/Marquee";
 import { AccordionItem } from "@/components/site/Accordion";
 import { Reviews } from "@/components/site/Reviews";
+import { ThirdPartyTested } from "@/components/site/ThirdPartyTested";
 import { BUNDLES, parseAmount } from "@/lib/offer";
 import { tiktokTrack } from "@/lib/tiktok";
 import heroAsset from "@/assets/collagen-hero.png.asset.json";
