@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronDown,
   Lock,
@@ -183,6 +183,8 @@ function CheckoutPage() {
     useRef<HTMLFormElement>(
       null,
     );
+
+  const navigate = useNavigate();
 
   const [
     status,
@@ -481,15 +483,16 @@ function CheckoutPage() {
          * - creating the Shopify order
          * - protecting against duplicates
          *
-         * The checkout only shows the
-         * payment success state.
+         * The checkout sends the customer
+         * to the confirmation page.
          */
-        setStatus("done");
+        void navigate({ to: "/thank-you" });
       },
       [
         orderTotal,
         tiktokContents,
         isPaymentTest,
+        navigate,
       ],
     );
 
