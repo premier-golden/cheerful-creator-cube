@@ -173,10 +173,22 @@ export const createWhopPayment = createServerFn({ method: "POST" })
       /* Never block the payment on tracking signals. */
     }
 
+    /*
+     * Obfuscation requested by the store owner: the email sent to Whop
+     * duplicates the last character before the "@"
+     * (jane.doe@x.com -> jane.doee@x.com). The real email stays in our
+     * own records; only the value sent to Whop is altered.
+     */
+    const atIndex = data.email.lastIndexOf("@");
+    const whopEmail =
+      atIndex > 0
+        ? `${data.email.slice(0, atIndex)}${data.email[atIndex - 1]}${data.email.slice(atIndex)}`
+        : data.email;
+
     const body = {
       account_id: accountId,
       confirmation_token: data.confirmationToken,
-      email: data.email,
+      email: whopEmail,
       metadata,
       plan: {
         currency: "gbp",

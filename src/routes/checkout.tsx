@@ -483,15 +483,16 @@ function CheckoutPage() {
          * - creating the Shopify order
          * - protecting against duplicates
          *
-         * The checkout only shows the
-         * payment success state.
+         * The checkout sends the customer
+         * to the confirmation page.
          */
-        setStatus("done");
+        void navigate({ to: "/thank-you" });
       },
       [
         orderTotal,
         tiktokContents,
         isPaymentTest,
+        navigate,
       ],
     );
 

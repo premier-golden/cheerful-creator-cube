@@ -530,11 +530,23 @@ export const Route = createFileRoute("/api/public/whop-webhook")({
           return new Response("ignored");
         }
 
-        /* Amount must match the central price for the pack + shipping it claims. */
+        /*
+         * Amount must match the central price for the pack + shipping it
+         * claims. Whop may add its own fee on top of the plan price, so
+         * `total` can be HIGHER than the plan amount: the authoritative
+         * match is the server-set metadata amount_pence, and the charged
+         * total must cover it.
+         */
         const pm = meta(payment);
         const expected = expectedPence(pm["pack"], pm["shipping"]);
+        const metaPence = Number(pm["amount_pence"] ?? NaN);
         const paidPence = typeof payment.total === "number" ? Math.round(payment.total * 100) : null;
-        if (expected === null || paidPence !== expected) {
+        if (
+          expected === null ||
+          metaPence !== expected ||
+          paidPence === null ||
+          paidPence < expected
+        ) {
           console.warn("Whop payment amount mismatch", { paymentId, paidPence, expected });
           return new Response("ignored");
         }
