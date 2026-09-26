@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronDown,
   Lock,
@@ -183,6 +183,8 @@ function CheckoutPage() {
     useRef<HTMLFormElement>(
       null,
     );
+
+  const navigate = useNavigate();
 
   const [
     status,
