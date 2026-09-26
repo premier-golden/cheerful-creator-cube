@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Copy the referenced project's /thank-you page using this project's own logo
 - [x] Add an isolated £1 Whop live payment test without shipping, Shopify fulfillment, or sales conversions
 - [x] Remove Cooud integration (component, server fn, proxy route, webhook)
 - [x] Replace checkout payment with Stripe Payment Element (own Stripe account keys)
