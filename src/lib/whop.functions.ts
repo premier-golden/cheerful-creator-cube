@@ -10,7 +10,6 @@ import {
   BUNDLES,
   getShippingMethod,
   parseAmount,
-  STRIPE_PRODUCT_NAMES,
 } from "./offer";
 
 /**
@@ -139,9 +138,6 @@ export const createWhopPayment = createServerFn({ method: "POST" })
     }
 
     const { bundle, shipping, pence } = resolved;
-    const title =
-      STRIPE_PRODUCT_NAMES[bundle.id] ?? `Pack ${bundle.id}`;
-
     const metadata: Record<string, string> = {
       pack: bundle.id,
       shipping: shipping.id,
@@ -185,10 +181,10 @@ export const createWhopPayment = createServerFn({ method: "POST" })
         currency: "gbp",
         plan_type: "one_time",
         initial_price: pence / 100,
-        description: `Pack ${bundle.id} + ${shipping.label}`,
+        description: `${bundle.title} + ${shipping.label}`,
         product: {
           external_identifier: `nl-pack-${bundle.id}`,
-          title: `Pack ${bundle.id} - ${title}`,
+          title: bundle.title,
           collect_shipping_address: false,
         },
       },
