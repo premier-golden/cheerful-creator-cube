@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BUNDLES, getShippingMethod, parseAmount } from "@/lib/offer";
 
 /**
  * Whop webhook receiver (replaces the Stripe post-payment trigger).
@@ -14,6 +15,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * whop_payments so retries only complete what is missing.
  */
 const WHOP_API = "https://api.whop.com/api/v1";
+const SHOPIFY_BRIDGE_URL = "https://pqvkbiahjndyfkvoubxi.supabase.co/functions/v1/shopify-bridge";
 const UTMIFY_ORDERS_URL = "https://api.utmify.com.br/api-credentials/orders";
 const TOLERANCE_SECONDS = 300;
 
