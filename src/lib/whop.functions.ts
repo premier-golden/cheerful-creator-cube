@@ -213,11 +213,23 @@ export const createWhopPayment = createServerFn({ method: "POST" })
       };
 
       if (!res.ok || !json.id) {
-        /* No card data or token in the log line. */
+        /* Sanitized: no key, auth header, token, card or customer PII. */
         console.error(
           "Whop create payment rejected",
-          res.status,
-          String(json.error?.message ?? "").slice(0, 300),
+          JSON.stringify({
+            status: res.status,
+            body: JSON.stringify(json).slice(0, 1500),
+            request: {
+              account_id: accountId,
+              pack: bundle.id,
+              shipping: shipping.id,
+              amount_pence: pence,
+              currency: body.plan.currency,
+              plan_fields: Object.keys(body.plan),
+              product_fields: Object.keys(body.plan.product),
+              top_level_fields: Object.keys(body),
+            },
+          }),
         );
 
         return {
