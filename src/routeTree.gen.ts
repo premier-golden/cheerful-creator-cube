@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as ApiWhopTestRouteImport } from './routes/api/whop-test'
 import { Route as ApiPublicUtmifyStripeRouteImport } from './routes/api/public/utmify-stripe'
 import { Route as ApiPublicWhopWebhookRouteImport } from './routes/api/public/whop-webhook'
@@ -29,6 +30,11 @@ const AdminRoute = AdminRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThankYouRoute = ThankYouRouteImport.update({
+  id: '/thank-you',
+  path: '/thank-you',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWhopTestRoute = ApiWhopTestRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/thank-you': typeof ThankYouRoute
   '/api/whop-test': typeof ApiWhopTestRoute
   '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
   '/api/public/whop-webhook': typeof ApiPublicWhopWebhookRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/thank-you': typeof ThankYouRoute
   '/api/whop-test': typeof ApiWhopTestRoute
   '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
   '/api/public/whop-webhook': typeof ApiPublicWhopWebhookRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/checkout': typeof CheckoutRoute
+  '/thank-you': typeof ThankYouRoute
   '/api/whop-test': typeof ApiWhopTestRoute
   '/api/public/utmify-stripe': typeof ApiPublicUtmifyStripeRoute
   '/api/public/whop-webhook': typeof ApiPublicWhopWebhookRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/checkout'
+    | '/thank-you'
     | '/api/whop-test'
     | '/api/public/utmify-stripe'
     | '/api/public/whop-webhook'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/checkout'
+    | '/thank-you'
     | '/api/whop-test'
     | '/api/public/utmify-stripe'
     | '/api/public/whop-webhook'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/checkout'
+    | '/thank-you'
     | '/api/whop-test'
     | '/api/public/utmify-stripe'
     | '/api/public/whop-webhook'
@@ -103,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   CheckoutRoute: typeof CheckoutRoute
+  ThankYouRoute: typeof ThankYouRoute
   ApiWhopTestRoute: typeof ApiWhopTestRoute
   ApiPublicUtmifyStripeRoute: typeof ApiPublicUtmifyStripeRoute
   ApiPublicWhopWebhookRoute: typeof ApiPublicWhopWebhookRoute
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/thank-you': {
+      id: '/thank-you'
+      path: '/thank-you'
+      fullPath: '/thank-you'
+      preLoaderRoute: typeof ThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/whop-test': {
@@ -159,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   CheckoutRoute: CheckoutRoute,
+  ThankYouRoute: ThankYouRoute,
   ApiWhopTestRoute: ApiWhopTestRoute,
   ApiPublicUtmifyStripeRoute: ApiPublicUtmifyStripeRoute,
   ApiPublicWhopWebhookRoute: ApiPublicWhopWebhookRoute,
