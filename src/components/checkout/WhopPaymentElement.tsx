@@ -24,7 +24,7 @@ import {
   getCheckoutSessionId,
   trackCheckout,
 } from "@/lib/checkout-tracking";
-import { BUNDLES, getShippingMethod, parseAmount } from "@/lib/offer";
+import { getBundle, getShippingMethod, parseAmount } from "@/lib/offer";
 import {
   createWhopPayment,
   getWhopConfig,
@@ -58,7 +58,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 /** Display/gating amount only. The server recomputes the charge. */
 function amountPence(pack: string, shipping: string | null) {
-  const bundle = BUNDLES.find((b) => b.id === pack) ?? BUNDLES[0]!;
+  const bundle = getBundle(pack);
   const ship = getShippingMethod(shipping);
   return (
     Math.round(parseAmount(bundle.price) * 100) +
@@ -225,7 +225,7 @@ function PayForm({
         createPayment({
           data: {
             pack,
-            shipping: shipping as "standard" | "express",
+            shipping: shipping as "standard" | "express" | "none",
             confirmationToken: token,
             checkoutSessionId: getCheckoutSessionId() ?? undefined,
             ...order,

@@ -10,6 +10,7 @@ import {
   BUNDLES,
   getShippingMethod,
   parseAmount,
+  TEST_BUNDLE,
 } from "./offer";
 
 /**
@@ -41,10 +42,10 @@ const ATTRIBUTION_KEYS = [
 
 /** Server-trusted total in pence for a pack + shipping pair. */
 function resolveTotal(pack: string, shippingId: string) {
-  const bundle = BUNDLES.find((b) => b.id === pack);
+  const bundle = pack === TEST_BUNDLE.id ? TEST_BUNDLE : BUNDLES.find((b) => b.id === pack);
   const shipping = getShippingMethod(shippingId);
 
-  if (!bundle || !shipping) return null;
+  if (!bundle || !shipping || (bundle.id === TEST_BUNDLE.id) !== (shipping.id === "none")) return null;
 
   const pence =
     Math.round(parseAmount(bundle.price) * 100) +
@@ -55,7 +56,7 @@ function resolveTotal(pack: string, shippingId: string) {
 
 /** Frontend gating hint only; the charge is recomputed server-side. */
 export function publicAmountPence(pack: string, shippingId: string | null) {
-  const bundle = BUNDLES.find((b) => b.id === pack) ?? BUNDLES[0]!;
+  const bundle = pack === TEST_BUNDLE.id ? TEST_BUNDLE : BUNDLES.find((b) => b.id === pack) ?? BUNDLES[0]!;
   const shipping = getShippingMethod(shippingId);
 
   return (
@@ -76,8 +77,8 @@ export const getWhopConfig = createServerFn({ method: "GET" }).handler(
 );
 
 const paymentSchema = z.object({
-  pack: z.enum(["1", "3", "6"]),
-  shipping: z.enum(["standard", "express"]),
+  pack: z.enum(["1", "3", "6", "test"]),
+  shipping: z.enum(["standard", "express", "none"]),
   confirmationToken: z.string().regex(/^ctok_[A-Za-z0-9_]+$/).max(200),
   checkoutSessionId: z.string().uuid().optional(),
   email: z.string().email().max(200),
@@ -183,7 +184,7 @@ export const createWhopPayment = createServerFn({ method: "POST" })
         initial_price: pence / 100,
         description: `${bundle.title} + ${shipping.label}`,
         product: {
-          external_identifier: `nl-pack-${bundle.id}`,
+          external_identifier: bundle.id === TEST_BUNDLE.id ? "nl-payment-test-1gbp" : `nl-pack-${bundle.id}`,
           title: bundle.title,
           collect_shipping_address: false,
         },
