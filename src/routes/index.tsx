@@ -7,6 +7,8 @@ import { Star, Gift, ChevronDown, Facebook, Instagram, ZoomIn } from "lucide-rea
 import { Marquee } from "@/components/site/Marquee";
 import { AccordionItem } from "@/components/site/Accordion";
 import { Reviews } from "@/components/site/Reviews";
+import { ThirdPartyTested } from "@/components/site/ThirdPartyTested";
+import { Button } from "@/components/ui/button";
 import { BUNDLES, parseAmount } from "@/lib/offer";
 import { tiktokTrack } from "@/lib/tiktok";
 import heroAsset from "@/assets/collagen-hero.png.asset.json";
@@ -224,7 +226,8 @@ function ProductPage() {
     monitorCssHealth();
   }, []);
 
-  const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0]!;
+  const bundle = BUNDLES.find((b) => b.id === selected) ?? BUNDLES[0];
+  if (!bundle) return null;
 
   /*
    * The CTA is a real link: it works before hydration
@@ -374,58 +377,58 @@ function ProductPage() {
                 return (
                   <div key={b.id} className="relative">
                     {b.badge && (
-                      <span className="absolute -top-3 right-4 z-10 inline-flex items-center gap-1.5 rounded-md bg-ink px-2 py-1 text-[11px] font-semibold text-background">
-                        <Gift className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
-                        {b.badge}
+                      <span className="pointer-events-none absolute -top-2.5 right-2 z-10 inline-flex items-center rounded-md bg-foreground px-2 py-0.5 text-[11px] font-semibold leading-4 text-background">
+                        {b.gifts.length > 1 ? `${b.gifts.length} Free Gifts 🎁` : b.badge}
                       </span>
                     )}
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => setSelected(b.id)}
                       aria-pressed={isSelected}
-                      className={`w-full overflow-hidden rounded-lg border-2 text-left transition-colors ${
+                      className={`block h-auto w-full whitespace-normal p-0 overflow-hidden rounded-lg border-2 text-left transition-colors ${
                         isSelected
-                          ? "border-price bg-brand-soft"
-                          : "border-border bg-muted/40 hover:border-brand/40"
+                          ? "border-foreground bg-pack-selected"
+                          : "border-border bg-muted hover:border-foreground/30"
                       }`}
                     >
-                      <div className="flex items-center gap-3 p-3">
-                        <img src={b.image} alt={b.title} width={84} height={84} className="size-[84px] object-contain" />
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-base font-bold">{b.title}</span>
+                      <div className="flex items-center gap-3 px-3 py-3">
+                        <img src={b.image} alt={b.title} width={72} height={72} className="size-[68px] shrink-0 object-contain" />
+                        <div className="min-w-0 flex-1">
+                          <div className={`flex items-center gap-2 ${b.gifts.length ? "flex-col items-start gap-1" : ""}`}>
+                            <span className="text-base font-bold leading-tight">{b.title}</span>
                             <span
-                              className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                                isSelected
-                                  ? "bg-background/70 text-ink"
-                                  : "bg-background text-muted-foreground"
+                              className={`whitespace-nowrap rounded-md px-2 py-0.5 text-[12px] font-medium ${
+                                isSelected ? "bg-foreground/10" : "bg-foreground/15"
                               }`}
                             >
                               {b.perPack}
                             </span>
                           </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{b.supply}</p>
+                          <p className="mt-0.5 text-sm text-muted-foreground">{b.supply}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-base font-bold">{b.price}</p>
-                          <p className="text-sm text-muted-foreground line-through">{b.compare}</p>
+                        <div className="shrink-0 text-right">
+                          <p className="text-lg font-bold leading-tight">{b.price}</p>
+                          <p className="text-sm leading-tight text-muted-foreground line-through">{b.compare}</p>
                         </div>
                       </div>
 
                       {b.gifts.length > 0 && (
-                        <div className="divide-y divide-background/15">
+                        <div className={isSelected ? "divide-y divide-background/20" : "divide-y divide-background/40"}>
                           {b.gifts.map((g) => (
                             <div
                               key={g.label}
-                                className="flex items-center gap-3 bg-gift-strip px-3 py-2 text-sm text-ink"
+                              className={`flex items-center gap-3 px-3 py-2 ${
+                                isSelected ? "bg-foreground text-background" : "bg-gift-strip text-foreground"
+                              }`}
                             >
-                              <img src={g.image} alt="" width={40} height={40} className="size-10 object-contain" />
-                              <span className="relative flex-1 pl-3 font-semibold before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:bg-ink">{g.label}</span>
-                              <span className="text-xs line-through opacity-70">{g.value}</span>
+                              <img src={g.image} alt="" width={32} height={32} className="size-8 shrink-0 object-contain" />
+                              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{g.label}</span>
+                              <span className="shrink-0 text-xs line-through opacity-70">{g.value}</span>
                             </div>
                           ))}
                         </div>
                       )}
-                    </button>
+                    </Button>
                   </div>
                 );
               })}
@@ -476,6 +479,8 @@ function ProductPage() {
               </a>
             </div>
 
+
+            <ThirdPartyTested />
 
             <div className="mt-7 divide-y divide-border border-y border-border">
               <AccordionItem
@@ -703,7 +708,7 @@ function ProductPage() {
               </div>
               <p className="mt-8 text-[17px] font-semibold">Payment Methods</p>
               <div className="mt-3 flex max-w-sm flex-wrap gap-2" aria-label="Accepted payment methods">
-                {["amex", "diners", "discover", "maestro", "mastercard", "paypal", "unionpay", "visa"].map((p) => (
+                {["amex", "diners", "discover", "maestro", "mastercard", "unionpay", "visa"].map((p) => (
                   <img key={p} src={`https://cdn.jsdelivr.net/gh/aaronfagan/svg-credit-card-payment-icons/flat/${p}.svg`} alt={p} width={38} height={24} className="h-6 w-[38px] rounded-sm bg-background object-contain" />
                 ))}
               </div>
